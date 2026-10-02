@@ -1,0 +1,6 @@
+{
+  "name": "CLARITY",
+  "description": "A contextual decision-understanding layer for investment workflows. Understand the consequences of a mutual fund redemption before proceeding.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

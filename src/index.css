@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-page: #F1F4F9;
+    --navy-900: #0B132B;
+    --navy-800: #1C2541;
+    --navy-700: #2C3E50;
+    --emerald-primary: #059669;
+    --emerald-light: #ECFDF5;
+    --amber-primary: #D97706;
+    --amber-light: #FFFBEB;
+    --indigo-primary: #3B82F6;
+    --indigo-light: #EFF6FF;
+  }
+
+  body {
+    background-color: #F0F4F8;
+    color: #0F172A;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Numerical tabular figures */
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-feature-settings: 'tnum' on, 'zero' on;
+  }
+}
+
+/* Custom interactive range slider */
+input[type="range"] {
+  accent-color: #2563EB;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2563EB;
+  cursor: pointer;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: #1D4ED8;
+}
+
+/* Print Styles */
+@media print {
+  header,
+  footer,
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .print-document {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+}
