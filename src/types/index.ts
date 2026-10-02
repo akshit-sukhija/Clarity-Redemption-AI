@@ -73,13 +73,22 @@ export interface CalculationResult {
   calculationTrace: CalculationTraceStep[];
 }
 
+export type RuleVerificationStatus =
+  | 'VERIFIED_PRIMARY'
+  | 'VERIFIED_SECONDARY'
+  | 'ILLUSTRATIVE'
+  | 'VALIDATION_REQUIRED'
+  | 'CONFLICTING'
+  | 'STALE'
+  | 'SUPERSEDED';
+
 export interface RuleVerificationSource {
   ruleName: string;
   category: 'Exit Load' | 'STT' | 'FIFO Allocation' | 'NAV Pricing' | 'Payout Timeline';
   sourceOrganization: string;
   sourceDocument: string;
   sourceDateVersion?: string;
-  verificationStatus: 'VERIFIED' | 'VALIDATION REQUIRED';
+  verificationStatus: RuleVerificationStatus;
   applicabilityConditions: string;
   summary: string;
 }
@@ -108,7 +117,7 @@ export interface WhyThisNumberTrace {
   sourceDocument: string;
   sourceAuthority: string;
   verifiedAsOf: string;
-  verificationStatus: 'VERIFIED' | 'VALIDATION REQUIRED';
+  verificationStatus: RuleVerificationStatus;
 }
 
 export interface MarketBenchmarkItem {
@@ -129,7 +138,7 @@ export interface LiveGroundingVerification {
   summary: string;
   groundedSources: { title: string; uri: string }[];
   searchQueries: string[];
-  verificationStatus: 'VERIFIED' | 'VALIDATION REQUIRED';
+  verificationStatus: RuleVerificationStatus;
   verifiedAt: string;
   sourceText: string;
 }

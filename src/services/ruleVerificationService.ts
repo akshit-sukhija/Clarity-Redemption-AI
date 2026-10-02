@@ -28,7 +28,7 @@ const STATIC_VERIFIED_CACHE: Record<string, LiveGroundingVerification> = {
       'STT rate equity mutual fund redemption Finance Act Section 98',
       'Securities Transaction Tax rate mutual fund repurchase AMFI',
     ],
-    verificationStatus: 'VERIFIED',
+    verificationStatus: 'VERIFIED_PRIMARY',
     verifiedAt: '2026-10-01 10:00 IST',
     sourceText:
       'Pursuant to Item 4 of Section 98 of Finance (No. 2) Act, 2004, sale of an unlisted or listed unit of an equity oriented fund to the mutual fund incurs STT payable by the seller at 0.001% of the value of the transaction.',
@@ -54,7 +54,7 @@ const STATIC_VERIFIED_CACHE: Record<string, LiveGroundingVerification> = {
       'SEBI mutual funds exit load regulations 365 days holding period',
       'AMFI equity mutual fund exit load credit back to scheme',
     ],
-    verificationStatus: 'VERIFIED',
+    verificationStatus: 'ILLUSTRATIVE',
     verifiedAt: '2026-10-01 10:00 IST',
     sourceText:
       'Under SEBI circular SEBI/IMD/CIR No. 4/168230/09, the entire exit load (net of GST) collected by an AMC must be credited back to the scheme immediately, ensuring long-term investors are not diluted by premature redemptions.',
@@ -80,7 +80,7 @@ const STATIC_VERIFIED_CACHE: Record<string, LiveGroundingVerification> = {
       'FIFO rule mutual fund redemption holding period calculation',
       'SEBI Income Tax Act Section 45 first in first out units',
     ],
-    verificationStatus: 'VERIFIED',
+    verificationStatus: 'VERIFIED_SECONDARY',
     verifiedAt: '2026-10-01 10:00 IST',
     sourceText:
       'Statutory FIFO accounting dictates that unit redemptions consume purchase lots in chronological order of allotment, ensuring transparent and deterministic holding-period calculation.',
@@ -91,7 +91,7 @@ const STATIC_VERIFIED_CACHE: Record<string, LiveGroundingVerification> = {
     regulatoryBody: 'Securities and Exchange Board of India (SEBI)',
     statutoryAct: 'SEBI Circular SEBI/HO/IMD/IMD-I/P/CIR/2022/161 (Effective 2023)',
     summary:
-      'SEBI reduced the maximum redemption payment timeline for equity mutual funds from T+3 to T+2 working days. AMCs must transfer redemption proceeds to the investor bank account within 2 business days of transaction acceptance.',
+      'Demo assumption: T+2 working days. Indicative processing window subject to cut-off times and banking operating hours.',
     groundedSources: [
       {
         title: 'SEBI Circular - Reduction in Redemption Payment Timelines to T+2',
@@ -101,7 +101,7 @@ const STATIC_VERIFIED_CACHE: Record<string, LiveGroundingVerification> = {
     searchQueries: [
       'SEBI circular mutual fund redemption payout timeline T+2 business days',
     ],
-    verificationStatus: 'VERIFIED',
+    verificationStatus: 'ILLUSTRATIVE',
     verifiedAt: '2026-10-01 10:00 IST',
     sourceText:
       'SEBI mandates that redemption proceeds for equity-oriented funds must be dispatched or credited to the investor account within two working days (T+2) from the date of receipt of valid redemption request.',
@@ -177,7 +177,7 @@ Do NOT give investment advice. Strictly state verified facts.`;
       summary: summaryText,
       groundedSources: groundedSources.length > 0 ? groundedSources : fallback.groundedSources,
       searchQueries: webSearchQueries,
-      verificationStatus: 'VERIFIED',
+      verificationStatus: 'VERIFIED_PRIMARY',
       verifiedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       sourceText: fallback.sourceText,
     };

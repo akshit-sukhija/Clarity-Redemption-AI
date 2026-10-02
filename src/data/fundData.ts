@@ -91,7 +91,7 @@ export const RULE_VERIFICATION_SOURCES: RuleVerificationSource[] = [
     sourceOrganization: 'Ministry of Finance / CBDT (Central Board of Direct Taxes)',
     sourceDocument: 'Section 98, Finance (No. 2) Act, 2004 (Item 4: Sale of units of an equity oriented fund to the Mutual Fund)',
     sourceDateVersion: 'Statutory Rate Schedule (Amended up to Finance Act 2024)',
-    verificationStatus: 'VERIFIED',
+    verificationStatus: 'VERIFIED_PRIMARY',
     applicabilityConditions: 'Applies to redemptions of equity-oriented mutual fund units at 0.001% of the gross redemption value.',
     summary:
       'STT of 0.001% is deducted by the AMC on equity-oriented fund redemptions and remitted to the government. This is a real statutory rate.',
@@ -102,11 +102,11 @@ export const RULE_VERIFICATION_SOURCES: RuleVerificationSource[] = [
     sourceOrganization: 'AMFI / Scheme Information Document (SID)',
     sourceDocument: 'SEBI (Mutual Funds) Regulations, 1996 · Reg 49(1) & Illustrative SID Format',
     sourceDateVersion: 'Prototype Scheme Specification',
-    verificationStatus: 'VERIFIED',
+    verificationStatus: 'ILLUSTRATIVE',
     applicabilityConditions:
       '1% exit load applies to units redeemed within 365 days of allotment; 0% applies to units held greater than 365 days.',
     summary:
-      'Scheme-level illustrative rule. Lot A (allotted 2025-08-15) is past 365 days as of 2026-10-01 (412 days held, 0% load). Lot B (allotted 2026-03-01) is within 365 days (214 days held, 1% load).',
+      'Demo scheme rule: 1% within the defined holding period. Lot A (allotted 2025-08-15) is past 365 days as of 2026-10-01 (412 days held, 0% load). Lot B (allotted 2026-03-01) is within 365 days (214 days held, 1% load).',
   },
   {
     ruleName: 'FIFO Accounting Method for Unit Redemptions',
@@ -114,8 +114,8 @@ export const RULE_VERIFICATION_SOURCES: RuleVerificationSource[] = [
     sourceOrganization: 'Income Tax Department & AMFI Operational Standards',
     sourceDocument: 'Income Tax Act 1961 (Section 45) & SEBI Operational Guidelines for Mutual Funds',
     sourceDateVersion: 'Standard industry convention',
-    verificationStatus: 'VERIFIED',
-    applicabilityConditions: 'First-in, First-out basis applies to determine which purchase lots are liquidated first.',
+    verificationStatus: 'VERIFIED_SECONDARY',
+    applicabilityConditions: 'FIFO applied under this prototype scheme rule to determine which purchase lots are liquidated first.',
     summary:
       'Older units (Lot A) are fully redeemed before units from later purchases (Lot B) are touched.',
   },
@@ -124,10 +124,10 @@ export const RULE_VERIFICATION_SOURCES: RuleVerificationSource[] = [
     category: 'Payout Timeline',
     sourceOrganization: 'SEBI (Securities and Exchange Board of India)',
     sourceDocument: 'SEBI Circular SEBI/HO/IMD/IMD-I DOF1/P/CIR/2022/161 (Settlement cycle reduction)',
-    sourceDateVersion: 'T+2 working days standard for equity schemes',
-    verificationStatus: 'VERIFIED',
+    sourceDateVersion: 'Demo assumption: T+2 working days',
+    verificationStatus: 'ILLUSTRATIVE',
     applicabilityConditions: 'Subject to cut-off timing, business days, and KYC compliance.',
     summary:
-      'Illustrative payout window within 2 working days. Actual processing depends on the AMC scheme terms and banking processing days.',
+      'Demo assumption: T+2 working days. Indicative processing depends on AMC scheme terms and banking hours.',
   },
 ];

@@ -1,9 +1,7 @@
 import React from 'react';
-import { ArrowRight, Layers, TrendingUp, ShieldCheck, Activity, Info, Calendar, AlertCircle } from 'lucide-react';
+import { ArrowRight, Layers, Info } from 'lucide-react';
 import { DEMO_FUND } from '../data/fundData';
 import { formatCurrency, formatUnits } from '../services/calculationEngine';
-
-import { MarketBenchmarkItem } from '../types';
 
 interface PortfolioScreenProps {
   onViewFund: () => void;
@@ -11,73 +9,27 @@ interface PortfolioScreenProps {
 }
 
 export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({ onViewFund, onQuickExplore }) => {
-  // P2: Contextual Market Pulse benchmarks (strictly isolated from calculations)
-  const marketBenchmarks: MarketBenchmarkItem[] = [
-    { name: 'NIFTY 50', val: '24,850.30', chg: '+0.35%', up: true, source: 'NSE Official Index', timestamp: '2026-10-01 15:30 IST', status: 'Fixed Contextual Reference' },
-    { name: 'SENSEX', val: '81,220.15', chg: '+0.28%', up: true, source: 'BSE Official Index', timestamp: '2026-10-01 15:30 IST', status: 'Fixed Contextual Reference' },
-    { name: 'INDIA VIX', val: '13.40', chg: '-1.10%', up: false, source: 'NSE Volatility', timestamp: '2026-10-01 15:30 IST', status: 'Fixed Contextual Reference' },
-    { name: 'USD / INR', val: '83.95', chg: '+0.05%', up: true, source: 'RBI Reference Rate', timestamp: '2026-10-01 13:30 IST', status: 'Fixed Contextual Reference' },
-  ];
-
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-6">
-      {/* P2: COMPACT MARKET PULSE (Strictly isolated from calculations) */}
-      <div className="bg-[#15233A] border border-[#26385A] rounded-xl p-3 sm:px-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 mb-2 border-b border-[#26385A]/60">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
-              MARKET PULSE
+    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-6">
+      {/* Editorial Hero Banner */}
+      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-6 sm:p-8 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="max-w-xl space-y-2">
+            <span className="inline-block text-[11px] font-semibold tracking-wider uppercase text-[#666861]">
+              Mutual fund redemption
             </span>
-            <span className="text-[10px] text-slate-400 bg-[#101B2E] px-2 py-0.5 rounded border border-[#26385A]">
-              Snapshot as of 2026-10-01 demo date
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400">
-            Contextual reference · Does not alter scheme NAV (₹152.00) or redemption calculation
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-          {marketBenchmarks.map((item) => (
-            <div key={item.name} className="bg-[#101B2E] p-2 rounded-lg border border-[#26385A]/70 flex items-center justify-between" title={`Source: ${item.source} · As of ${item.timestamp}`}>
-              <div>
-                <span className="text-slate-400 font-sans text-[11px] block">{item.name}</span>
-                <span className="text-[9px] text-slate-500 font-sans block">{item.source}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-[#F5F7FA] font-bold block">{item.val}</span>
-                <span className={`text-[10px] ${item.up ? 'text-emerald-400' : 'text-slate-300'}`}>
-                  {item.chg}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Hero Welcome / Mission Banner */}
-      <div className="bg-gradient-to-r from-[#15233A] to-[#1A2C4A] border border-[#26385A] rounded-2xl p-6 sm:p-7 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-blue-500/20 text-blue-300 rounded border border-blue-400/30">
-                Decision Intelligence
-              </span>
-              <span className="text-xs text-slate-400">•</span>
-              <span className="text-xs text-slate-300">Mutual Fund Redemption Layer</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#F5F7FA]">
-              Understand what ₹X means before you redeem.
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1E211F] font-sans">
+              Understand the consequences before you redeem.
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-              Consolidates gross entered amount, net proceeds, FIFO lot liquidation, scheme exit loads, and statutory STT into one neutral pre-confirmation view.
+            <p className="text-sm text-[#666861] leading-relaxed">
+              Before submitting a redemption request, review estimated net proceeds, statutory STT,
+              applicable scheme exit loads, and your remaining invested balance.
             </p>
           </div>
 
           <button
             onClick={onViewFund}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#247A5A] hover:bg-[#1D6349] text-white rounded-lg text-xs font-semibold transition-colors shadow-xs shrink-0 cursor-pointer"
           >
             <span>Review a redemption</span>
             <ArrowRight className="w-4 h-4" />
@@ -85,76 +37,77 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({ onViewFund, on
         </div>
       </div>
 
-      {/* MAIN INTELLIGENCE SURFACE (2 Columns on Desktop) */}
+      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Your Holding & Lot Architecture (7 cols) */}
+        {/* Active Holding & Lot Breakdown (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="bg-[#15233A] border border-[#26385A] rounded-2xl p-5 sm:p-6 shadow-sm">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#26385A]">
+          <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="flex items-start justify-between pb-4 border-b border-[#DDD9D0]">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Active Holding
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A8D86] block">
+                  Active scheme holding
                 </span>
-                <h2 className="text-lg sm:text-xl font-bold text-[#F5F7FA] mt-0.5">
+                <h2 className="text-lg font-bold text-[#1E211F] mt-1">
                   {DEMO_FUND.name}
                 </h2>
-                <div className="flex items-center gap-2 mt-1 text-xs text-slate-300">
-                  <span className="px-2 py-0.5 bg-[#101B2E] rounded text-slate-300 font-medium border border-[#26385A]">
-                    {DEMO_FUND.category}
-                  </span>
+                <div className="flex items-center gap-2 mt-1 text-xs text-[#666861]">
+                  <span>{DEMO_FUND.category}</span>
                   <span>•</span>
                   <span>{DEMO_FUND.plan}</span>
                 </div>
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Holding Value
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A8D86] block">
+                  Holding value
                 </span>
-                <span className="text-2xl font-extrabold font-mono text-emerald-400 block mt-0.5">
+                <span className="text-xl font-bold font-mono text-[#1E211F] block mt-0.5">
                   {formatCurrency(DEMO_FUND.holdingValue)}
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">
-                  1,200.000 u @ ₹152.00
+                <span className="text-[11px] text-[#8A8D86] font-mono">
+                  {formatUnits(DEMO_FUND.totalUnits)} units @ {formatCurrency(DEMO_FUND.illustrativeNAV)}
                 </span>
               </div>
             </div>
 
-            {/* Holding Purchase Lots (FIFO Structure) */}
-            <div className="space-y-2.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-blue-400" />
-                Underlying Purchase Lots (2 Lots Available)
-              </span>
+            {/* Underlying Lots */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#1E211F] flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-[#666861]" />
+                  Purchase lots in this holding
+                </span>
+                <span className="text-[11px] text-[#8A8D86]">
+                  FIFO allocation applied
+                </span>
+              </div>
 
               {DEMO_FUND.lots.map((lot) => (
                 <div
                   key={lot.id}
-                  className="bg-[#101B2E] border border-[#26385A] rounded-xl p-3.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                  className="bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg p-3 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                 >
-                  <div>
+                  <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-[#F5F7FA]">{lot.name}</span>
-                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                      <span className="font-semibold text-[#1E211F]">{lot.name}</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-medium rounded ${
                         lot.exitLoadEligible
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          ? 'bg-[#A66A16]/10 text-[#A66A16] border border-[#A66A16]/20'
+                          : 'bg-[#247A5A]/10 text-[#247A5A] border border-[#247A5A]/20'
                       }`}>
-                        {lot.exitLoadEligible ? '1% Exit Load' : '0% Exit Load (Held > 365 Days)'}
+                        {lot.exitLoadEligible ? '1% demo exit load' : '0% load (held > 365 days)'}
                       </span>
                     </div>
-                    <div className="text-slate-400 text-[11px] mt-1 flex items-center gap-2">
-                      <span>Allotted: {lot.allotmentDate}</span>
-                      <span>•</span>
-                      <span>{lot.reason}</span>
+                    <div className="text-[#8A8D86] text-[11px]">
+                      Allotted {lot.allotmentDate} · {lot.reason}
                     </div>
                   </div>
 
                   <div className="sm:text-right font-mono">
-                    <span className="text-sm font-bold text-[#F5F7FA] block">
+                    <span className="text-xs font-bold text-[#1E211F] block">
                       {formatUnits(lot.units)} units
                     </span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-[#666861]">
                       {formatCurrency(lot.units * DEMO_FUND.illustrativeNAV)}
                     </span>
                   </div>
@@ -162,38 +115,36 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({ onViewFund, on
               ))}
             </div>
 
-            <div className="mt-5 pt-4 border-t border-[#26385A] flex justify-between items-center text-xs">
-              <span className="text-slate-400">
-                FIFO Accounting: Lot A liquidated first, then Lot B.
-              </span>
+            <div className="pt-2 flex justify-between items-center text-xs text-[#666861]">
+              <span>Demo scenario date: {DEMO_FUND.demoAsOfDate}</span>
               <button
                 onClick={onViewFund}
-                className="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 transition-colors"
+                className="text-[#247A5A] hover:underline font-semibold flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <span>View fund details</span>
+                <span>View scheme details</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Relevant Context & "Why am I seeing this?" (5 cols) */}
+        {/* Right Column: Decision principle and quick exploration (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
-          {/* Quick Scenario Exploration Box */}
-          <div className="bg-[#15233A] border border-[#26385A] rounded-2xl p-5 shadow-sm space-y-3">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400 block">
-              Quick Scenario Review
+          {/* Quick Scenario Options */}
+          <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 shadow-xs space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#8A8D86] block">
+              Sample redemption scenarios
             </span>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Explore how specific redemption amounts impact exit loads, statutory STT, and remaining units:
+            <p className="text-xs text-[#666861] leading-relaxed">
+              Select an amount to explore its specific deduction breakdown and remaining balance:
             </p>
 
-            <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               {[
                 { label: '₹25,000', amt: 25000, desc: 'Lot A only (0% load)' },
                 { label: '₹50,000', amt: 50000, desc: 'Crosses into Lot B' },
                 { label: '₹75,000', amt: 75000, desc: 'Higher Lot B share' },
-                { label: 'Full (₹1.82L)', amt: 182400, desc: 'Complete liquidation' },
+                { label: 'Full redemption', amt: DEMO_FUND.holdingValue, desc: 'All units liquidated' },
               ].map((item) => (
                 <button
                   key={item.amt}
@@ -204,12 +155,12 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({ onViewFund, on
                       onViewFund();
                     }
                   }}
-                  className="bg-[#101B2E] hover:bg-[#1A2C4A] p-2.5 rounded-xl border border-[#26385A] text-left transition-all group"
+                  className="bg-[#F1EFE9] hover:bg-[#E8E5DD] p-2.5 rounded-lg border border-[#DDD9D0] text-left transition-colors cursor-pointer"
                 >
-                  <span className="font-bold text-[#F5F7FA] group-hover:text-blue-300 block">
+                  <span className="font-bold text-[#1E211F] block text-xs">
                     {item.label}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-sans block mt-0.5">
+                  <span className="text-[10px] text-[#666861] font-sans block mt-0.5">
                     {item.desc}
                   </span>
                 </button>
@@ -217,22 +168,15 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({ onViewFund, on
             </div>
           </div>
 
-          {/* "Why am I seeing this?" Card */}
-          <div className="bg-[#15233A] border border-[#26385A] rounded-2xl p-5 shadow-sm text-xs space-y-2 text-slate-300">
-            <div className="flex items-center gap-1.5 font-bold text-[#F5F7FA]">
-              <Info className="w-4 h-4 text-blue-400" />
-              <span>Why am I seeing this?</span>
+          {/* Core Principle Card */}
+          <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 shadow-xs text-xs space-y-2">
+            <div className="flex items-center gap-1.5 font-semibold text-[#1E211F]">
+              <Info className="w-4 h-4 text-[#247A5A]" />
+              <span>Clarity core principle</span>
             </div>
-            <p className="leading-relaxed text-slate-400">
-              When retail investors redeem, digital platforms often show only the gross input. Clarity previews unrounded statutory deductions (CBDT STT 0.001%) and scheme exit loads so you understand the exact net credited amount.
-            </p>
-          </div>
-
-          {/* Honesty Guardrail Teaser */}
-          <div className="bg-[#101B2E] border border-[#26385A] rounded-2xl p-4 text-xs text-slate-400 space-y-1">
-            <span className="font-bold text-slate-300 block">Clarity Core Principle:</span>
-            <p>
-              "Show the consequences. Explain the evidence. Leave the decision to the investor."
+            <p className="leading-relaxed text-[#666861]">
+              Show the consequences. Do not tell the investor what decision to make.
+              Clarity is not a financial advisor and does not recommend buying, selling, or redeeming.
             </p>
           </div>
         </div>

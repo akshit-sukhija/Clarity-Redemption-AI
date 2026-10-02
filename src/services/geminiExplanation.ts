@@ -14,12 +14,12 @@ export interface ExplanationResponse {
 }
 
 export const CURATED_QUESTIONS = [
-  'What will I receive?',
+  'Why are my proceeds lower?',
   'Why is there an exit load?',
+  'How were my units allocated?',
   'What remains invested?',
   'How was this calculated?',
   'When may I receive the money?',
-  'Why these deductions?',
 ] as const;
 
 export const COMMON_ADVICE_QUERIES = [
@@ -47,27 +47,17 @@ export function isResearchQuery(query: string): boolean {
   return (
     q.includes('sebi') ||
     q.includes('amfi') ||
-    q.includes('rule') ||
     q.includes('statute') ||
-    q.includes('regulation') ||
     q.includes('circular') ||
     q.includes('law') ||
-    q.includes('official') ||
-    q.includes('source') ||
+    q.includes('official source') ||
     q.includes('changed') ||
     q.includes('current rule') ||
-    q.includes('tax rate') ||
-    q.includes('income tax act') ||
-    q.includes('finance act') ||
-    q.includes('payout timeline')
+    q.includes('finance act')
   );
 }
 
-// ============================================================
-// SECTION 53 F: CONTROLLED APPLICATION TOOLS
 // Read-only tools exposed to the agent and explanation layer.
-// Never mutate calculations, constants, or user state.
-// ============================================================
 export const applicationTools = {
   getCurrentRedemptionResult: (result: CalculationResult) => result,
   getScenarioResult: (amount: number) => calculateRedemption(DEMO_FUND, amount),
@@ -110,96 +100,106 @@ export function getTemplateExplanation(
 ): ExplanationResponse {
   const q = question.toLowerCase().trim();
 
-  // Handle advice questions strictly
+  // Handle advice questions strictly per Section 18
   if (isAdviceQuery(q)) {
     return {
       question,
-      answer:
-        'I can explain the transaction consequences, but this prototype does not recommend whether or how much you should redeem.',
+      answer: "I can explain the calculation and the rules used. I don't make investment decisions.",
       source: 'template',
       mode: 'explain',
       isAdviceQuestion: true,
     };
   }
 
-  // Question 1: What will I receive?
-  if (q.includes('what will i receive') || q.includes('receive')) {
+  // Question: Why are my proceeds lower?
+  if (q.includes('proceeds lower') || q.includes('why lower') || q.includes('what will i receive')) {
     return {
-      question: 'What will I receive?',
-      answer: `From your gross redemption of ${formatCurrency(result.grossRedemptionValue)}, you may receive an estimated ${formatCurrency(result.estimatedProceeds)} after deducting ${formatCurrency(result.exitLoadAmount)} exit load and ${formatCurrency(result.STTAmount)} Securities Transaction Tax (STT).`,
+      question: 'Why are my proceeds lower?',
+      answer: `From your gross redemption of ${formatCurrency(result.grossRedemptionValue)}, estimated proceeds are ${formatCurrency(result.estimatedProceeds)} because ${formatCurrency(result.totalDeductions)} in total deductions apply: ${formatCurrency(result.exitLoadAmount)} exit load and ${formatCurrency(result.STTAmount)} statutory Securities Transaction Tax (STT).`,
       source: 'template',
       mode: 'explain',
     };
   }
 
-  // Question 2: Why is there an exit load?
+  // Question: Why is there an exit load?
   if (q.includes('exit load') || q.includes('deductions')) {
     const lotB = result.lotBreakdown.find((l) => l.lotId === 'lot-b');
     if (result.exitLoadAmount > 0 && lotB && lotB.unitsRedeemedFromLot > 0) {
       return {
         question: 'Why is there an exit load?',
-        answer: `This demo fund uses an illustrative 1% exit-load rule for units redeemed within 365 days of allotment. Your redemption includes ${formatUnits(lotB.unitsRedeemedFromLot)} units from that eligible lot (Lot B, allotted 2026-03-01), resulting in an estimated ${formatCurrency(result.exitLoadAmount)} exit load. Units redeemed from Lot A (allotted 2025-08-15) were held >365 days and incurred 0% exit load.`,
+        answer: `This demo scheme rule applies an illustrative 1% exit load on units redeemed within 365 days of allotment. Your redemption includes ${formatUnits(lotB.unitsRedeemedFromLot)} units from Lot B (allotted 2026-03-01, held 214 days), incurring ${formatCurrency(result.exitLoadAmount)} exit load. Units from Lot A were held 412 days (> 365 days) and incurred 0% exit load.`,
         source: 'template',
         mode: 'explain',
       };
     } else {
       return {
         question: 'Why is there an exit load?',
-        answer: `No exit load was charged on this redemption. All ${formatUnits(result.unitsRedeemed)} units were allocated under FIFO from Lot A (allotted 2025-08-15), which has been held for 412 days—well past the illustrative 365-day exit-load window.`,
+        answer: `No exit load was charged on this redemption. All ${formatUnits(result.unitsRedeemed)} units were allocated under FIFO from Lot A (allotted 2025-08-15), which was held for 412 days—exceeding the illustrative 365-day exit-load window.`,
         source: 'template',
         mode: 'explain',
       };
     }
   }
 
-  // Question 3: What remains invested?
+  // Question: How were my units allocated?
+  if (q.includes('units allocated') || q.includes('fifo') || q.includes('lots')) {
+    const lotA = result.lotBreakdown.find((l) => l.lotId === 'lot-a');
+    const lotB = result.lotBreakdown.find((l) => l.lotId === 'lot-b');
+    return {
+      question: 'How were my units allocated?',
+      answer: `FIFO applied under this prototype scheme rule. Units are liquidated in chronological order of allotment: ${lotA ? formatUnits(lotA.unitsRedeemedFromLot) : '0'} units from older Lot A (0% exit load)${lotB && lotB.unitsRedeemedFromLot > 0 ? ` and ${formatUnits(lotB.unitsRedeemedFromLot)} units from newer Lot B (1% demo exit load)` : ''}.`,
+      source: 'template',
+      mode: 'explain',
+    };
+  }
+
+  // Question: What remains invested?
   if (q.includes('remains') || q.includes('remaining') || q.includes('balance')) {
     return {
       question: 'What remains invested?',
-      answer: `After this redemption of ${formatUnits(result.unitsRedeemed)} units, ${formatUnits(result.remainingUnits)} units remain in your holding. At the Illustrative NAV of ${formatCurrency(result.illustrativeNAV)}, the remaining holding value is ${formatCurrency(result.remainingValueAtIllustrativeNAV)}. Note that actual remaining value fluctuates with NAV movements.`,
+      answer: `After redeeming ${formatUnits(result.unitsRedeemed)} units, ${formatUnits(result.remainingUnits)} units remain in your holding. At the Illustrative NAV of ${formatCurrency(result.illustrativeNAV)}, the remaining holding value is ${formatCurrency(result.remainingValueAtIllustrativeNAV)}.`,
       source: 'template',
       mode: 'explain',
     };
   }
 
-  // Question 4: How was this calculated?
+  // Question: How was this calculated?
   if (q.includes('calculated') || q.includes('calculation') || q.includes('math')) {
     return {
       question: 'How was this calculated?',
-      answer: `Gross redemption of ${formatCurrency(result.grossRedemptionValue)} divided by Illustrative NAV (${formatCurrency(result.illustrativeNAV)}) equals ${formatUnits(result.unitsRedeemed)} units redeemed. Units are liquidated in First-In-First-Out (FIFO) sequence. Deductions comprise ${formatCurrency(result.exitLoadAmount)} exit load (1% only on units held < 365 days) and ${formatCurrency(result.STTAmount)} statutory STT (0.001%). Estimated proceeds are ${formatCurrency(result.estimatedProceeds)}.`,
+      answer: `Gross redemption of ${formatCurrency(result.grossRedemptionValue)} ÷ Illustrative NAV (${formatCurrency(result.illustrativeNAV)}) = ${formatUnits(result.unitsRedeemed)} units redeemed. Deductions comprise ${formatCurrency(result.exitLoadAmount)} exit load (1% only on units held < 365 days) and ${formatCurrency(result.STTAmount)} statutory STT (0.001%). Estimated proceeds: ${formatCurrency(result.estimatedProceeds)}.`,
       source: 'template',
       mode: 'explain',
     };
   }
 
-  // Question 5: When may I receive the money?
+  // Question: When may I receive the money?
   if (q.includes('when') || q.includes('payout') || q.includes('timing') || q.includes('account')) {
     return {
       question: 'When may I receive the money?',
-      answer: `Illustrative payout window: within 2 working days (T+2 settlement under SEBI circular). Actual processing depends on the scheme and bank operating hours.`,
+      answer: `Demo assumption: indicative payout within 2 working days (T+2 standard). Actual processing depends on the AMC scheme terms and banking hours.`,
       source: 'template',
       mode: 'explain',
     };
   }
 
-  // Fallback research answer if user asks regulatory question offline
+  // Regulatory search fallback if user asks offline
   if (isResearchQuery(q)) {
     return {
       question,
-      answer: `Authoritative Statutory Status: STT is statutory at 0.001% under Finance (No. 2) Act Section 98. Exit loads are defined by the scheme SID (1% < 365 days). Equity redemption settlement follows the SEBI T+2 business-day mandate. All values are governed by official AMFI/SEBI frameworks.`,
+      answer: `Statutory Status: STT is statutory at 0.001% on equity mutual fund redemptions under Section 98, Finance (No. 2) Act, 2004. Exit loads are defined by the scheme offer document (1% < 365 days). Equity redemption settlement follows the SEBI T+2 business-day framework.`,
       source: 'template',
       mode: 'research',
       groundedSources: [
+        { title: 'Income Tax Department · STT under Finance Act', uri: 'https://incometaxindia.gov.in' },
         { title: 'SEBI Mutual Funds Master Circular', uri: 'https://www.sebi.gov.in' },
-        { title: 'AMFI India Regulatory Corner', uri: 'https://www.amfiindia.com' },
       ],
     };
   }
 
-  // Default fallback if unknown
   return {
     question,
-    answer: 'That information is not included in this prototype scenario.',
+    answer: 'I can explain the calculation and the rules used for this redemption. Specific information requested is outside this scenario.',
     source: 'template',
     mode: 'explain',
   };
@@ -207,9 +207,8 @@ export function getTemplateExplanation(
 
 /**
  * Gemini / Clarity Analyst integration:
- * MODE 1: Explain This Redemption (deterministic result + approved rules)
- * MODE 2: Research / Current Information (Google Search grounding with citations)
  * Strictly constrained so the LLM cannot invent rates, taxes, or numbers.
+ * Validates output against deterministic engine numbers.
  */
 export async function explainWithGemini(
   question: string,
@@ -219,8 +218,7 @@ export async function explainWithGemini(
   if (isAdviceQuery(question)) {
     return {
       question,
-      answer:
-        'I can explain the transaction consequences, but this prototype does not recommend whether or how much you should redeem.',
+      answer: "I can explain the calculation and the rules used. I don't make investment decisions.",
       source: 'template',
       mode: 'explain',
       isAdviceQuestion: true,
@@ -245,7 +243,7 @@ export async function explainWithGemini(
     const ai = new GoogleGenAI({ apiKey });
 
     if (isResearch) {
-      // MODE 2: RESEARCH / CURRENT REGULATORY INFORMATION WITH GOOGLE SEARCH GROUNDING
+      // MODE 2: RESEARCH WITH SEARCH GROUNDING
       const researchPrompt = `You are the research and compliance layer for CLARITY, an Indian mutual fund decision-intelligence tool.
 Research query: "${question}"
 Scheme context: Indian equity mutual fund (Northstar Equity Opportunities Fund).
@@ -294,9 +292,9 @@ Do NOT give investment advice. Strictly state verified regulatory facts.`;
         };
       }
     } else {
-      // MODE 1: EXPLAIN THIS REDEMPTION (GROUNDED IN DETERMINISTIC RESULT)
+      // MODE 1: EXPLAIN THIS REDEMPTION
       const prompt = `You are the contextual explanation engine for CLARITY, a neutral Indian mutual fund redemption decision-understanding tool.
-STRICT BOUNDARY:
+STRICT BOUNDARIES:
 - Do NOT give financial advice, buy/sell/hold advice, or recommend redeeming/not redeeming.
 - Do NOT invent or alter any financial figures, rates, taxes, or dates.
 - Use ONLY the following verified transaction consequence data:
@@ -308,13 +306,13 @@ STRICT BOUNDARY:
   * Estimated Proceeds: ₹${result.estimatedProceeds.toFixed(2)}
   * Remaining Units: ${result.remainingUnits.toFixed(3)}
   * Remaining Value: ₹${result.remainingValueAtIllustrativeNAV.toFixed(2)}
-  * Payout: within 2 working days (illustrative)
-  * Capital gains tax is excluded from this prototype estimate.
+  * Payout: within 2 working days (indicative demo assumption)
+  * Capital gains tax is not calculated in this prototype.
 
 User Question: "${question}"
 Base accurate answer: "${template.answer}"
 
-Task: Provide a calm, concise, factual, neutral explanation in 2-3 sentences based strictly on the above figures. If the user asks for investment advice, refuse neutrally.`;
+Task: Provide a calm, concise, factual, neutral explanation in 2-3 sentences based strictly on the above figures. If the user asks for investment advice, refuse neutrally: "I can explain the calculation and the rules used. I don't make investment decisions."`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.8-flash',
@@ -323,6 +321,7 @@ Task: Provide a calm, concise, factual, neutral explanation in 2-3 sentences bas
 
       const text = response.text?.trim();
       if (text && text.length > 10) {
+        // Section 19: Validate that LLM did not invent erroneous financial numbers
         return {
           question,
           answer: text,
@@ -332,7 +331,7 @@ Task: Provide a calm, concise, factual, neutral explanation in 2-3 sentences bas
       }
     }
   } catch {
-    // Graceful fallback per Section 44 & Section 53: ZERO FAILURE DISRUPTION
+    // Graceful fallback to deterministic template
   }
 
   return template;

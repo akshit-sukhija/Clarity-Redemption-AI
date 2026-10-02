@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, AlertCircle, Info, Sliders, Layers } from 'lucide-react';
+import { ArrowLeft, ArrowRight, AlertCircle, Info } from 'lucide-react';
 import { DEMO_FUND } from '../data/fundData';
-import { formatCurrency, formatIndianNumber } from '../services/calculationEngine';
+import { formatCurrency } from '../services/calculationEngine';
 
 interface RedeemAmountScreenProps {
   onBack: () => void;
@@ -59,7 +59,7 @@ export const RedeemAmountScreen: React.FC<RedeemAmountScreenProps> = ({
 
     if (numericAmount > availableHolding) {
       setValidationError(
-        `Amount cannot exceed your available holding value of ${formatCurrency(availableHolding)}.`
+        `Amount cannot exceed available holding value of ${formatCurrency(availableHolding)}.`
       );
       return;
     }
@@ -75,161 +75,119 @@ export const RedeemAmountScreen: React.FC<RedeemAmountScreenProps> = ({
       {/* Back button */}
       <button
         onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-blue-400 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#666861] hover:text-[#1E211F] transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Fund Details
+        Back to scheme details
       </button>
 
-      {/* Screen Title & Subheading */}
+      {/* Screen Title */}
       <div>
-        <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400 block mb-1">
-          Redemption Amount Entry
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A8D86] block mb-1">
+          Redemption amount
         </span>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F5F7FA] tracking-tight">
-          HOW MUCH DO YOU WANT TO EXPLORE?
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1E211F] tracking-tight">
+          How much do you intend to redeem?
         </h1>
-        <p className="text-xs sm:text-sm text-slate-300 mt-1">
+        <p className="text-sm text-[#666861] mt-1">
           Enter an amount or adjust the slider to see its estimated consequences before continuing.
         </p>
       </div>
 
       {/* Main Entry Card */}
-      <div className="bg-[#15233A] border border-[#26385A] rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-6 sm:p-8 shadow-xs space-y-6">
         {/* Available Holding Context Banner */}
-        <div className="p-4 bg-[#101B2E] border border-[#26385A] rounded-xl flex items-center justify-between">
+        <div className="p-4 bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg flex items-center justify-between text-xs">
           <div>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-              Redeem From Holding
-            </span>
-            <span className="text-sm font-bold text-[#F5F7FA] block mt-0.5">
-              {DEMO_FUND.name}
-            </span>
-            <span className="text-[11px] text-slate-400 font-mono">
-              1,200.000 units @ ₹152.00 NAV
-            </span>
-          </div>
-          <div className="text-right">
-            <span className="text-[10px] text-slate-400 uppercase block">Available Value</span>
-            <span className="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400 block mt-0.5">
+            <span className="text-[#8A8D86] block">Available holding value</span>
+            <strong className="text-base font-bold font-mono text-[#1E211F]">
               {formatCurrency(availableHolding)}
-            </span>
+            </strong>
+          </div>
+          <div className="text-right text-[#666861]">
+            <span className="block font-mono">{DEMO_FUND.totalUnits} units</span>
+            <span className="text-[11px] text-[#8A8D86]">@ {formatCurrency(DEMO_FUND.illustrativeNAV)}</span>
           </div>
         </div>
 
-        {/* Input Box */}
-        <div>
-          <label
-            htmlFor="redemption-input"
-            className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2"
-          >
-            Gross Redemption Value
+        {/* Amount Input Field */}
+        <div className="space-y-2">
+          <label htmlFor="redemption-amount" className="block text-xs font-semibold text-[#1E211F]">
+            Redemption amount (₹)
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-2xl font-bold text-slate-500">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-[#666861]">
               ₹
-            </div>
+            </span>
             <input
-              id="redemption-input"
+              id="redemption-amount"
               type="text"
-              inputMode="decimal"
-              placeholder="0.00"
+              inputMode="numeric"
+              placeholder="e.g. 50,000"
               value={inputValue}
               onChange={handleInputChange}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleReviewConsequences();
-              }}
-              className={`w-full pl-11 pr-4 py-4 text-3xl font-extrabold font-mono text-[#F5F7FA] bg-[#101B2E] border-2 ${
-                validationError
-                  ? 'border-rose-500 focus:ring-rose-400/30'
-                  : 'border-[#26385A] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
-              } rounded-xl outline-none transition-all placeholder:text-slate-600 shadow-inner`}
+              className="w-full bg-[#FFFFFF] border border-[#DDD9D0] rounded-lg pl-9 pr-4 py-3 text-xl font-bold font-mono text-[#1E211F] placeholder-[#8A8D86] focus:outline-none focus:border-[#247A5A] transition-colors"
             />
           </div>
 
-          {/* Validation Error Message */}
           {validationError && (
-            <div className="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-rose-300 bg-rose-950/60 p-2.5 rounded-lg border border-rose-800">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="flex items-center gap-1.5 text-xs text-[#B65347] pt-1">
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{validationError}</span>
             </div>
           )}
-
-          <p className="text-[11px] text-slate-400 mt-2">
-            The gross value of units selected for liquidation before applicable exit load and STT deductions.
-          </p>
         </div>
 
-        {/* Interactive Exploration Slider */}
-        <div className="p-4 bg-[#101B2E] border border-[#26385A] rounded-xl space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-300">
-            <span className="flex items-center gap-1.5 font-bold">
-              <Sliders className="w-3.5 h-3.5 text-blue-400" />
-              Interactive Amount Scrub:
-            </span>
-            <span className="font-mono text-emerald-400 font-bold">
-              {currentNumeric > 0 ? formatCurrency(currentNumeric, 0) : '₹0'}
-            </span>
-          </div>
-
+        {/* Range Slider for Amount Exploration */}
+        <div className="space-y-2 pt-2">
+          <label className="block text-xs font-semibold text-[#666861]">
+            Adjust with slider
+          </label>
           <input
             type="range"
-            min="5000"
+            min="1000"
             max={availableHolding}
             step="1000"
-            value={currentNumeric > 0 ? currentNumeric : 5000}
+            value={currentNumeric || 0}
             onChange={handleSliderChange}
-            className="w-full h-2 bg-[#0D1626] rounded-lg appearance-none cursor-pointer accent-blue-500"
-            aria-label="Amount scrubber slider"
+            className="w-full cursor-pointer"
+            aria-label="Adjust redemption amount"
           />
-
-          <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-            <span>₹5K</span>
-            <span className="text-amber-400">Lot A Boundary: ₹45,600 (0% Load)</span>
-            <span>₹1.82L (Full)</span>
+          <div className="flex justify-between text-[11px] font-mono text-[#8A8D86]">
+            <span>Min: ₹1,000</span>
+            <span>Max: {formatCurrency(availableHolding)}</span>
           </div>
         </div>
 
-        {/* Quick Scenario Shortcuts */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Quick Scenarios:
-            </span>
-            <span className="text-[11px] text-slate-400 italic">
-              Scenario shortcuts, not recommendations
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {[
-              { label: '₹25,000', val: 25000 },
-              { label: '₹50,000', val: 50000 },
-              { label: '₹75,000', val: 75000 },
-              { label: 'Full (₹1.82L)', val: availableHolding },
-            ].map((opt) => (
+        {/* Quick Amount Chips */}
+        <div className="space-y-2 pt-2">
+          <span className="text-xs font-semibold text-[#666861] block">
+            Quick amounts:
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
+            {[25000, 50000, 75000, availableHolding].map((amt) => (
               <button
-                key={opt.val}
+                key={amt}
                 type="button"
-                onClick={() => handleQuickSelect(opt.val)}
-                className={`py-3 px-3 text-xs font-bold font-mono rounded-xl border transition-all ${
-                  inputValue === opt.val.toString()
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-md ring-1 ring-blue-400'
-                    : 'bg-[#101B2E] hover:bg-[#1A2C4A] text-slate-300 border-[#26385A]'
+                onClick={() => handleQuickSelect(amt)}
+                className={`py-2 px-3 rounded-lg border text-center transition-colors cursor-pointer ${
+                  currentNumeric === amt
+                    ? 'border-[#247A5A] bg-[#247A5A]/10 text-[#247A5A] font-bold'
+                    : 'border-[#DDD9D0] bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD]'
                 }`}
               >
-                {opt.label}
+                {amt === availableHolding ? 'Full amount' : formatCurrency(amt, 0)}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Primary Action Button */}
-        <div className="pt-2">
+        {/* Action Button */}
+        <div className="pt-4 border-t border-[#DDD9D0]">
           <button
             type="button"
             onClick={handleReviewConsequences}
-            className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
+            className="w-full py-3.5 px-4 bg-[#247A5A] hover:bg-[#1D6349] text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
           >
             <span>Review consequences</span>
             <ArrowRight className="w-4 h-4" />

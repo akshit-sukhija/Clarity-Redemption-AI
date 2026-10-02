@@ -2,18 +2,17 @@
 
 @layer base {
   :root {
-    --bg-page: #0D1626;
-    --panel-bg: #15233A;
-    --panel-sub: #101B2E;
-    --border-color: #26385A;
-    --border-light: #364B73;
-    --text-primary: #F5F7FA;
-    --text-secondary: #9BA9BE;
-    --text-muted: #64748B;
-    --accent-emerald: #10B981;
-    --accent-amber: #F59E0B;
-    --accent-blue: #3B82F6;
-    --accent-rose: #EF4444;
+    --bg-page: #F7F5F0;
+    --surface-primary: #FFFFFF;
+    --surface-secondary: #F1EFE9;
+    --border-color: #DDD9D0;
+    --border-subtle: #E8E5DD;
+    --text-primary: #1E211F;
+    --text-secondary: #666861;
+    --text-muted: #8A8D86;
+    --accent-positive: #247A5A;
+    --accent-caution: #A66A16;
+    --accent-negative: #B65347;
   }
 
   body {
@@ -21,7 +20,7 @@
     color: var(--text-primary);
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
-    selection-background-color: #2563EB;
+    selection-background-color: #247A5A;
     selection-color: #FFFFFF;
   }
   
@@ -32,35 +31,35 @@
   }
 }
 
-/* Custom Range Slider for Dark Financial Surface */
+/* Custom Range Slider for Warm Editorial Fintech */
 input[type="range"] {
-  accent-color: #3B82F6;
+  accent-color: #247A5A;
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 8px;
-  background-color: #101B2E;
+  height: 6px;
+  background-color: #E8E5DD;
   border-radius: 9999px;
-  border: 1px solid #26385A;
+  border: 1px solid #DDD9D0;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   margin-top: -6px;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #3B82F6;
+  background: #247A5A;
   cursor: pointer;
-  border: 2px solid #F5F7FA;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   transition: transform 0.15s ease, background 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  background: #60A5FA;
+  transform: scale(1.15);
+  background: #1B5E45;
 }
 
 /* Custom Scrollbar */
@@ -69,17 +68,17 @@ input[type="range"]::-webkit-slider-thumb:hover {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0D1626;
+  background: #F7F5F0;
 }
 ::-webkit-scrollbar-thumb {
-  background: #26385A;
+  background: #DDD9D0;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #364B73;
+  background: #C4BFB5;
 }
 
-/* Accessibility: Respect prefers-reduced-motion (Section 21) */
+/* Accessibility: Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
@@ -91,7 +90,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   }
 }
 
-/* Print Styles: Clean Institutional Document Output (Section 10) */
+/* Print Styles: Clean Editorial Document Output */
 @media print {
   header,
   footer,
@@ -104,7 +103,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
   body {
     background-color: #ffffff !important;
-    color: #111827 !important;
+    color: #1E211F !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -113,7 +112,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
     padding: 0 !important;
     margin: 0 auto !important;
     max-width: 100% !important;
-    color: #111827 !important;
+    color: #1E211F !important;
     background-color: #ffffff !important;
   }
 }

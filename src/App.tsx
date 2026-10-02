@@ -21,36 +21,11 @@ export default function App() {
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
   const [previousResult, setPreviousResult] = useState<CalculationResult | null>(null);
 
-  // Initial session history items (Section 18)
-  const [scenarioHistory, setScenarioHistory] = useState<ScenarioHistoryItem[]>([
-    {
-      id: 'scen-init-1',
-      amount: 25000,
-      timestamp: '08:30 AM',
-      netProceeds: 24999.75,
-      totalDeductions: 0.25,
-      unitsRedeemed: 164.474,
-    },
-    {
-      id: 'scen-init-2',
-      amount: 50000,
-      timestamp: '08:35 AM',
-      netProceeds: 49955.50,
-      totalDeductions: 44.50,
-      unitsRedeemed: 328.947,
-    },
-    {
-      id: 'scen-init-3',
-      amount: 75000,
-      timestamp: '08:40 AM',
-      netProceeds: 74705.25,
-      totalDeductions: 294.75,
-      unitsRedeemed: 493.421,
-    },
-  ]);
+  // Initial session history items (Section 7: Start strictly EMPTY, no fake entries)
+  const [scenarioHistory, setScenarioHistory] = useState<ScenarioHistoryItem[]>([]);
 
-  // Explored Scenarios state tracked during session per Section 14
-  const [exploredScenarios, setExploredScenarios] = useState<number[]>([25000, 50000, 75000]);
+  // Explored Scenarios state tracked during session (start strictly empty)
+  const [exploredScenarios, setExploredScenarios] = useState<number[]>([]);
 
   // Modals & Drawers state (Phase 3: Standalone Glossary separate from Analyst)
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
@@ -60,7 +35,7 @@ export default function App() {
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
   const [glossaryInitialTab, setGlossaryInitialTab] = useState<'glossary' | 'rules'>('glossary');
 
-  // Records a scenario in the session exploration history without consecutive duplicates
+  // Records a scenario in the session exploration history without consecutive duplicates (max 10)
   const recordScenario = (amount: number, res: CalculationResult) => {
     setScenarioHistory((prev) => {
       if (prev.length > 0 && prev[prev.length - 1].amount === amount) {
@@ -75,7 +50,7 @@ export default function App() {
         totalDeductions: res.totalDeductions,
         unitsRedeemed: res.unitsRedeemed,
       };
-      return [...prev.slice(-7), item];
+      return [...prev.slice(-9), item];
     });
   };
 
@@ -140,11 +115,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0D1626] text-[#F5F7FA]">
+    <div className="min-h-screen flex flex-col bg-[#F7F5F0] text-[#1E211F]">
       {/* Global Header */}
       <Header
         activeScreen={currentScreen}
-        onOpenTestFixtures={() => setIsTestModalOpen(true)}
         onOpenGlossary={() => {
           setGlossaryInitialTab('glossary');
           setIsGlossaryOpen(true);
@@ -213,6 +187,7 @@ export default function App() {
           setGlossaryInitialTab('glossary');
           setIsGlossaryOpen(true);
         }}
+        onOpenDiagnostics={() => setIsTestModalOpen(true)}
       />
 
       {/* Overlay Modals & Drawers */}
