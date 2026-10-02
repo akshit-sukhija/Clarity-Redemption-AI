@@ -176,6 +176,7 @@ export interface LiveGroundingVerification {
 }
 
 export type AppScreen =
+  | 'terminal'
   | 'portfolio'
   | 'fund_details'
   | 'enter_amount'

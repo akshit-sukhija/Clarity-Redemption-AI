@@ -206,6 +206,82 @@ export function getTemplateExplanation(
 }
 
 /**
+ * Strict Numeric Validation (Section 37)
+ * Verifies that any numbers, amounts, percentages, or tax references in LLM text
+ * are strictly grounded in CalculationResult and verified rules.
+ * If unsupported financial claims or advice words are detected, rejects the text.
+ */
+export function validateNumericClaims(text: string, result: CalculationResult): boolean {
+  const lower = text.toLowerCase();
+
+  // Reject any recommendation or advice steering
+  const adviceWords = [
+    'recommend',
+    'you should',
+    'better to',
+    'optimal',
+    'best option',
+    'advise you to',
+    'suggest you redeem',
+    'suggest you hold',
+    'avoid redeeming',
+  ];
+  for (const word of adviceWords) {
+    if (lower.includes(word)) {
+      return false;
+    }
+  }
+
+  // Reject fabricated capital gains tax claims
+  if (
+    lower.includes('tax of') ||
+    lower.includes('capital gains tax is ₹') ||
+    lower.includes('stcg') ||
+    lower.includes('ltcg')
+  ) {
+    // Only allowed if explicitly disclaiming
+    if (
+      !lower.includes('capital gains tax is not calculated') &&
+      !lower.includes('not calculated in this prototype')
+    ) {
+      return false;
+    }
+  }
+
+  // Extract rupee monetary amounts: e.g. ₹50,000 or ₹49,955.50 or Rs. 50000
+  const rupeeMatches = text.match(/(?:₹|rs\.?\s*)([0-9,]+(?:\.[0-9]+)?)/gi) || [];
+  const allowedAmounts = [
+    Math.round(result.grossRedemptionValue),
+    Math.round(result.estimatedProceeds),
+    Math.round(result.totalDeductions),
+    Math.round(result.exitLoadAmount),
+    Math.round(result.remainingValueAtIllustrativeNAV),
+    Math.round(result.illustrativeNAV),
+    Math.round(DEMO_FUND.holdingValue),
+    0,
+  ];
+
+  for (const match of rupeeMatches) {
+    const rawNum = match.replace(/[^0-9.]/g, '');
+    const num = parseFloat(rawNum);
+    if (!isNaN(num)) {
+      const isAllowed =
+        allowedAmounts.includes(Math.round(num)) ||
+        Math.abs(num - result.STTAmount) < 0.1 ||
+        Math.abs(num - result.exitLoadAmount) < 0.1 ||
+        Math.abs(num - result.totalDeductions) < 0.1 ||
+        Math.abs(num - result.estimatedProceeds) < 1;
+
+      if (!isAllowed && num > 10) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
  * Gemini / Clarity Analyst integration:
  * Strictly constrained so the LLM cannot invent rates, taxes, or numbers.
  * Validates output against deterministic engine numbers.
@@ -321,13 +397,15 @@ Task: Provide a calm, concise, factual, neutral explanation in 2-3 sentences bas
 
       const text = response.text?.trim();
       if (text && text.length > 10) {
-        // Section 19: Validate that LLM did not invent erroneous financial numbers
-        return {
-          question,
-          answer: text,
-          source: 'llm',
-          mode: 'explain',
-        };
+        // Section 37: Validate that LLM did not invent erroneous financial numbers or advice
+        if (validateNumericClaims(text, result)) {
+          return {
+            question,
+            answer: text,
+            source: 'llm',
+            mode: 'explain',
+          };
+        }
       }
     }
   } catch {

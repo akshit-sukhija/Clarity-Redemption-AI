@@ -14,7 +14,7 @@ export const Footer: React.FC<FooterProps> = ({
 }) => {
   return (
     <footer className="mt-auto border-t border-[#DDD9D0] bg-[#FFFFFF] py-8 text-center text-xs text-[#666861]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-3">
         <p className="max-w-2xl mx-auto leading-relaxed text-[#666861]">
           This prototype uses illustrative data to explore redemption consequences before transaction confirmation.
           It does not provide financial advice, recommend decisions, or execute orders.

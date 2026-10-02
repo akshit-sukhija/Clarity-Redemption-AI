@@ -4,10 +4,10 @@ import { DEMO_FUND } from './data/fundData';
 import { calculateRedemption } from './services/calculationEngine';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { ClarityTerminal } from './components/ClarityTerminal';
 import { PortfolioScreen } from './components/PortfolioScreen';
 import { FundDetailsScreen } from './components/FundDetailsScreen';
 import { RedeemAmountScreen } from './components/RedeemAmountScreen';
-import { RedemptionSnapshotScreen } from './components/RedemptionSnapshotScreen';
 import { ComparisonView } from './components/ComparisonView';
 import { ExplanationDrawer } from './components/ExplanationDrawer';
 import { EndStateScreen } from './components/EndStateScreen';
@@ -16,18 +16,18 @@ import { ExportRecordModal } from './components/ExportRecordModal';
 import { StandaloneGlossaryModal } from './components/StandaloneGlossaryModal';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>('portfolio');
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
-  const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
+  // Screen 1 is the Decision-Context Terminal (Anchor-inspired IA)
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>('terminal');
+  const [selectedAmount, setSelectedAmount] = useState<number>(50000);
+  const [calculationResult, setCalculationResult] = useState<CalculationResult>(() =>
+    calculateRedemption(DEMO_FUND, 50000)
+  );
   const [previousResult, setPreviousResult] = useState<CalculationResult | null>(null);
 
-  // Initial session history items (Section 7: Start strictly EMPTY, no fake entries)
+  // Initial session history items (Section 30: Start strictly EMPTY, no fake entries)
   const [scenarioHistory, setScenarioHistory] = useState<ScenarioHistoryItem[]>([]);
 
-  // Explored Scenarios state tracked during session (start strictly empty)
-  const [exploredScenarios, setExploredScenarios] = useState<number[]>([]);
-
-  // Modals & Drawers state (Phase 3: Standalone Glossary separate from Analyst)
+  // Modals & Drawers state
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
@@ -54,42 +54,7 @@ export default function App() {
     });
   };
 
-  // Navigate to Fund Details
-  const handleViewFund = () => {
-    setCurrentScreen('fund_details');
-  };
-
-  // Start Redemption
-  const handleStartRedemption = () => {
-    setCurrentScreen('enter_amount');
-  };
-
-  // Amount entered and proceed to Snapshot
-  const handleProceedToSnapshot = (amount: number) => {
-    try {
-      const result = calculateRedemption(DEMO_FUND, amount);
-      if (calculationResult && calculationResult.grossRedemptionValue !== amount) {
-        setPreviousResult(calculationResult);
-      }
-      setSelectedAmount(amount);
-      setCalculationResult(result);
-      recordScenario(amount, result);
-
-      // Track explored scenarios without duplication
-      setExploredScenarios((prev) => {
-        if (!prev.includes(amount)) {
-          return [...prev, amount].sort((a, b) => a - b);
-        }
-        return prev;
-      });
-
-      setCurrentScreen('redemption_snapshot');
-    } catch (err: any) {
-      console.error(err?.message || 'Unable to calculate consequences for this amount.');
-    }
-  };
-
-  // Live amount slider change on snapshot screen (instant recalculation)
+  // Live amount slider change on terminal (instant recalculation)
   const handleLiveAmountChange = (amount: number) => {
     try {
       const result = calculateRedemption(DEMO_FUND, amount);
@@ -104,14 +69,9 @@ export default function App() {
     }
   };
 
-  // Change amount action
-  const handleChangeAmount = () => {
-    setCurrentScreen('enter_amount');
-  };
-
-  // Amount chosen from comparison scenario or explored scenario chip
+  // Amount chosen from scenario explorer or history chip
   const handleSelectAmountFromScenario = (amt: number) => {
-    handleProceedToSnapshot(amt);
+    handleLiveAmountChange(amt);
   };
 
   return (
@@ -123,58 +83,67 @@ export default function App() {
           setGlossaryInitialTab('glossary');
           setIsGlossaryOpen(true);
         }}
-        onNavigateHome={() => setCurrentScreen('portfolio')}
+        onNavigateHome={() => setCurrentScreen('terminal')}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 pb-16">
+        {(currentScreen === 'terminal' || currentScreen === 'redemption_snapshot') && (
+          <ClarityTerminal
+            result={calculationResult}
+            previousResult={previousResult}
+            onLiveAmountChange={handleLiveAmountChange}
+            onSelectExploredScenario={handleSelectAmountFromScenario}
+            onOpenComparison={() => setIsComparisonOpen(true)}
+            onOpenExplanationDrawer={() => setIsExplanationOpen(true)}
+            onOpenExportRecord={() => setIsExportModalOpen(true)}
+            onOpenGlossary={(tab = 'glossary') => {
+              setGlossaryInitialTab(tab);
+              setIsGlossaryOpen(true);
+            }}
+            onViewFund={() => setCurrentScreen('fund_details')}
+            onContinue={() => setCurrentScreen('prototype_end')}
+            scenarioHistory={scenarioHistory}
+          />
+        )}
+
         {currentScreen === 'portfolio' && (
           <PortfolioScreen
-            onViewFund={handleViewFund}
-            onQuickExplore={handleProceedToSnapshot}
+            onViewFund={() => setCurrentScreen('fund_details')}
+            onQuickExplore={(amt) => {
+              handleLiveAmountChange(amt);
+              setCurrentScreen('terminal');
+            }}
           />
         )}
 
         {currentScreen === 'fund_details' && (
           <FundDetailsScreen
-            onBack={() => setCurrentScreen('portfolio')}
-            onStartRedemption={handleStartRedemption}
+            onBack={() => setCurrentScreen('terminal')}
+            onStartRedemption={() => setCurrentScreen('terminal')}
           />
         )}
 
         {currentScreen === 'enter_amount' && (
           <RedeemAmountScreen
-            onBack={() => setCurrentScreen('fund_details')}
-            onProceed={handleProceedToSnapshot}
+            onBack={() => setCurrentScreen('terminal')}
+            onProceed={(amt) => {
+              handleLiveAmountChange(amt);
+              setCurrentScreen('terminal');
+            }}
             initialAmount={selectedAmount}
-          />
-        )}
-
-        {currentScreen === 'redemption_snapshot' && calculationResult && (
-          <RedemptionSnapshotScreen
-            result={calculationResult}
-            previousResult={previousResult}
-            onChangeAmount={handleChangeAmount}
-            onOpenComparison={() => setIsComparisonOpen(true)}
-            onOpenExplanationDrawer={() => setIsExplanationOpen(true)}
-            onOpenExportRecord={() => setIsExportModalOpen(true)}
-            onContinue={() => setCurrentScreen('prototype_end')}
-            exploredScenarios={exploredScenarios}
-            scenarioHistory={scenarioHistory}
-            onSelectExploredScenario={handleSelectAmountFromScenario}
-            onLiveAmountChange={handleLiveAmountChange}
           />
         )}
 
         {currentScreen === 'prototype_end' && calculationResult && (
           <EndStateScreen
             result={calculationResult}
-            onReturnToSnapshot={() => setCurrentScreen('redemption_snapshot')}
+            onReturnToSnapshot={() => setCurrentScreen('terminal')}
             onStartNewScenario={() => {
-              setSelectedAmount(null);
-              setCalculationResult(null);
+              setSelectedAmount(50000);
+              setCalculationResult(calculateRedemption(DEMO_FUND, 50000));
               setPreviousResult(null);
-              setCurrentScreen('enter_amount');
+              setCurrentScreen('terminal');
             }}
           />
         )}
@@ -207,7 +176,7 @@ export default function App() {
             isOpen={isExplanationOpen}
             onClose={() => setIsExplanationOpen(false)}
             result={calculationResult}
-            onChangeAmount={handleChangeAmount}
+            onChangeAmount={() => setCurrentScreen('terminal')}
             onOpenGlossary={() => {
               setGlossaryInitialTab('glossary');
               setIsGlossaryOpen(true);
@@ -223,7 +192,7 @@ export default function App() {
         </>
       )}
 
-      {/* Standalone Canonical Glossary Reference (Phase 3 & Section O) */}
+      {/* Standalone Canonical Glossary Reference */}
       <StandaloneGlossaryModal
         isOpen={isGlossaryOpen}
         onClose={() => setIsGlossaryOpen(false)}

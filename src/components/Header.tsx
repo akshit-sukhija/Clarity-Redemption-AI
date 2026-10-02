@@ -14,12 +14,12 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-[#FFFFFF]/90 backdrop-blur-md border-b border-[#DDD9D0]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-15 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-15 flex items-center justify-between">
         {/* Brand / Logo */}
         <div className="flex items-center gap-3">
           <button
             onClick={onNavigateHome}
-            className="flex items-center gap-2.5 group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#247A5A] rounded-md"
+            className="flex items-center gap-2.5 group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#247A5A] rounded-md cursor-pointer"
           >
             <div className="w-7 h-7 rounded bg-[#1E211F] flex items-center justify-center font-bold text-white text-sm">
               C
@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
                 Clarity
               </span>
               <span className="hidden sm:inline-block ml-2 text-xs text-[#666861] font-normal">
-                Redemption consequence explorer
+                Redemption context, without the guesswork
               </span>
             </div>
           </button>

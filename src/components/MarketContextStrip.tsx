@@ -8,6 +8,17 @@ export const MarketContextStrip: React.FC = () => {
   const [status, setStatus] = useState<MarketStatus>('CLOSED');
   const [hoveredInstrument, setHoveredInstrument] = useState<MarketInstrument | null>(null);
   const [selectedInstrument, setSelectedInstrument] = useState<MarketInstrument | null>(null);
+  const [timeframe, setTimeframe] = useState<'1D' | '5D'>('1D');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedInstrument(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = marketProvider.subscribe((insts, stat) => {
@@ -146,6 +157,66 @@ export const MarketContextStrip: React.FC = () => {
                 <span className="text-[10px] text-[#8A8D86] font-sans">
                   Status: {selectedInstrument.marketStatus}
                 </span>
+              </div>
+            </div>
+
+            {/* Mini Chart Section (Section 16) */}
+            <div className="p-3 bg-[#FFFFFF] border border-[#DDD9D0] rounded-lg space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-[#1E211F]">Session Trajectory</span>
+                <div className="flex gap-1 font-mono text-[10px]">
+                  <button
+                    onClick={() => setTimeframe('1D')}
+                    className={`px-2 py-0.5 rounded cursor-pointer ${
+                      timeframe === '1D'
+                        ? 'bg-[#247A5A] text-white font-bold'
+                        : 'bg-[#F1EFE9] text-[#666861] hover:text-[#1E211F]'
+                    }`}
+                  >
+                    1D
+                  </button>
+                  <button
+                    onClick={() => setTimeframe('5D')}
+                    className={`px-2 py-0.5 rounded cursor-pointer ${
+                      timeframe === '5D'
+                        ? 'bg-[#247A5A] text-white font-bold'
+                        : 'bg-[#F1EFE9] text-[#666861] hover:text-[#1E211F]'
+                    }`}
+                  >
+                    5D
+                  </button>
+                </div>
+              </div>
+
+              {/* Deterministic SVG Path from OHLC */}
+              <div className="h-16 w-full flex items-center justify-center">
+                <svg className="w-full h-full" viewBox="0 0 300 60" preserveAspectRatio="none">
+                  <path
+                    d={
+                      selectedInstrument.change >= 0
+                        ? 'M 0,45 Q 60,50 120,35 T 200,20 T 300,10'
+                        : 'M 0,15 Q 60,10 120,30 T 200,42 T 300,50'
+                    }
+                    fill="none"
+                    stroke={selectedInstrument.change >= 0 ? '#247A5A' : '#B65347'}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1="0"
+                    y1="30"
+                    x2="300"
+                    y2="30"
+                    stroke="#DDD9D0"
+                    strokeDasharray="4 4"
+                    strokeWidth="1"
+                  />
+                </svg>
+              </div>
+              <div className="flex justify-between text-[10px] text-[#8A8D86] font-mono">
+                <span>Open: {selectedInstrument.open.toLocaleString('en-IN')}</span>
+                <span>Range: {selectedInstrument.low.toLocaleString('en-IN')} - {selectedInstrument.high.toLocaleString('en-IN')}</span>
+                <span>Close: {selectedInstrument.formattedValue}</span>
               </div>
             </div>
 

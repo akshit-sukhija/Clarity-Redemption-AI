@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "tsx -e \"import { runAllTestFixtures } from './src/services/testFixtures'; const r = runAllTestFixtures(); console.log('Passed:', r.passedTests, 'of', r.totalTests); if (!r.allPassed) { process.exit(1); }\""
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
