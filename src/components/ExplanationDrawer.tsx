@@ -46,6 +46,7 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
   const [activeTab, setActiveTab] = useState<'explain' | 'calculation' | 'evidence'>('explain');
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
   const [currentResponse, setCurrentResponse] = useState<ExplanationResponse | null>(null);
+  const [customInput, setCustomInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Live Grounding Verification State (Section 7 & 8)
@@ -162,15 +163,51 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
             <div className="space-y-6">
               <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-400/30 text-xs text-blue-200 leading-relaxed">
                 <span className="font-bold text-[#F5F7FA] block mb-1">
-                  Plain-Language Consequence Explanation
+                  Plain-Language Consequence Explanation & Regulatory Research
                 </span>
-                The Clarity Analyst interprets the calculated consequences of your {formatCurrency(result.grossRedemptionValue)} redemption without making investment recommendations.
+                The Clarity Analyst explains calculated consequences for your {formatCurrency(result.grossRedemptionValue)} redemption and uses Google Search Grounding to verify official SEBI/AMFI rules.
+              </div>
+
+              {/* Free-form Question & Regulatory Search Bar */}
+              <div>
+                <label htmlFor="analyst-query-input" className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                  Ask a Question or Research a Rule:
+                </label>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (customInput.trim()) {
+                      handleAskQuestion(customInput.trim());
+                      setCustomInput('');
+                    }
+                  }}
+                  className="flex gap-2"
+                >
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      id="analyst-query-input"
+                      type="text"
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      placeholder="e.g., 'What is the current SEBI rule?' or 'Why is exit load charged?'"
+                      className="w-full bg-[#101B2E] border border-[#26385A] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400 transition-colors"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!customInput.trim() || isLoading}
+                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors whitespace-nowrap shadow-xs"
+                  >
+                    {isLoading ? 'Researching...' : 'Ask'}
+                  </button>
+                </form>
               </div>
 
               {/* Curated Question Buttons */}
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2.5">
-                  Select a Curated Question:
+                  Curated Consequence Inquiries:
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {CURATED_QUESTIONS.map((q) => (
@@ -184,6 +221,28 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
                       }`}
                     >
                       {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Regulatory Research Shortcuts (Mode 2) */}
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                  Live Regulatory Research (Google Search Grounding):
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    'What is the current SEBI rule for exit load?',
+                    'Official STT rate under Finance Act Section 98',
+                    'SEBI T+2 payout timeline regulation',
+                  ].map((ruleQuery) => (
+                    <button
+                      key={ruleQuery}
+                      onClick={() => handleAskQuestion(ruleQuery)}
+                      className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors"
+                    >
+                      🔍 {ruleQuery}
                     </button>
                   ))}
                 </div>
@@ -215,22 +274,60 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
               {/* Active Answer Card */}
               {selectedQuestion && (
                 <div className="p-5 bg-[#101B2E] rounded-2xl border border-[#26385A] shadow-sm space-y-3">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#26385A]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#26385A]">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-[#F5F7FA]">
-                      <CornerDownRight className="w-4 h-4 text-blue-400" />
+                      <CornerDownRight className="w-4 h-4 text-blue-400 shrink-0" />
                       <span>{selectedQuestion}</span>
                     </div>
-                    {currentResponse?.source === 'llm' && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded border border-blue-400/30">
-                        <Sparkles className="w-3 h-3 text-blue-400" />
-                        Grounded AI
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {currentResponse?.mode === 'research' ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-400/30">
+                          <Search className="w-3 h-3 text-emerald-400" />
+                          Mode 2 · Search Grounding
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded border border-blue-400/30">
+                          <Sparkles className="w-3 h-3 text-blue-400" />
+                          Mode 1 · Active Scenario
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <p className="text-xs text-slate-300 leading-relaxed font-medium">
                     {isLoading ? 'Retrieving grounded explanation...' : currentResponse?.answer}
                   </p>
+
+                  {/* Grounded Sources & Citations per Section 53 A */}
+                  {currentResponse?.groundedSources && currentResponse.groundedSources.length > 0 && (
+                    <div className="pt-3 border-t border-[#26385A] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          Verified Grounding Citations:
+                        </span>
+                        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                          VERIFIED STATUTE
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {currentResponse.groundedSources.map((source, idx) => (
+                          <a
+                            key={idx}
+                            href={source.uri}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-2 rounded-lg bg-[#15233A] hover:bg-[#1E2E4B] border border-[#26385A] text-xs transition-colors group"
+                          >
+                            <span className="text-blue-300 group-hover:text-blue-200 truncate pr-2 font-medium">
+                              {source.title}
+                            </span>
+                            <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-300 shrink-0" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* If advice question was asked, provide neutral actions */}
                   {currentResponse?.isAdviceQuestion && (
