@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Sparkles,
@@ -20,7 +20,7 @@ import {
   getTemplateExplanation,
   ExplanationResponse,
 } from '../services/geminiExplanation';
-import { STATIC_GLOSSARY, RULE_VERIFICATION_SOURCES } from '../data/fundData';
+import { RULE_VERIFICATION_SOURCES } from '../data/fundData';
 import { formatCurrency, formatUnits } from '../services/calculationEngine';
 import {
   verifyRuleWithGrounding,
@@ -32,6 +32,7 @@ interface ExplanationDrawerProps {
   onClose: () => void;
   result: CalculationResult;
   onChangeAmount: () => void;
+  onOpenGlossary?: () => void;
 }
 
 export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
@@ -39,9 +40,10 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
   onClose,
   result,
   onChangeAmount,
+  onOpenGlossary,
 }) => {
-  // Tabs representing EXPLAIN, CALCULATION, EVIDENCE, plus GLOSSARY
-  const [activeTab, setActiveTab] = useState<'explain' | 'calculation' | 'evidence' | 'glossary'>('explain');
+  // Tabs representing EXPLAIN, CALCULATION, EVIDENCE (Section O: No nested glossary in Analyst)
+  const [activeTab, setActiveTab] = useState<'explain' | 'calculation' | 'evidence'>('explain');
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
   const [currentResponse, setCurrentResponse] = useState<ExplanationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +52,17 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
   const [selectedRuleId, setSelectedRuleId] = useState<string>('stt-equity');
   const [verificationResult, setVerificationResult] = useState<LiveGroundingVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Accessible keyboard Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -132,23 +145,13 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('evidence')}
-            className={`py-3 px-3 font-bold border-b-2 transition-colors whitespace-nowrap ${
+            className={`py-3 px-4 font-bold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'evidence'
                 ? 'border-blue-500 text-blue-400 bg-[#15233A]'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             EVIDENCE & GROUNDING
-          </button>
-          <button
-            onClick={() => setActiveTab('glossary')}
-            className={`py-3 px-3 font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'glossary'
-                ? 'border-blue-500 text-blue-400 bg-[#15233A]'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            GLOSSARY
           </button>
         </div>
 
@@ -249,6 +252,23 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Standalone Glossary Reference Link (Section O / Phase 3) */}
+              {onOpenGlossary && (
+                <div className="p-3.5 bg-[#101B2E] border border-[#26385A] rounded-xl flex items-center justify-between text-xs text-slate-400">
+                  <span>Need definitions of terms like Exit Load, STT, or NAV?</span>
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenGlossary();
+                    }}
+                    className="text-blue-400 hover:text-blue-300 font-bold inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Open Standalone Glossary</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -425,23 +445,6 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
                     <p className="mt-2.5 pt-2 border-t border-[#26385A] text-[11px] text-slate-400 italic">
                       {source.summary}
                     </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: GLOSSARY */}
-          {activeTab === 'glossary' && (
-            <div className="space-y-4">
-              <p className="text-xs text-slate-400">
-                Definitions approved under the CLARITY master specification. Concise, neutral, and without speculative assertions.
-              </p>
-              <div className="space-y-3">
-                {STATIC_GLOSSARY.map((item) => (
-                  <div key={item.term} className="p-4 bg-[#101B2E] rounded-xl border border-[#26385A]">
-                    <h4 className="text-xs font-bold text-[#F5F7FA] mb-1">{item.term}</h4>
-                    <p className="text-xs text-slate-300 leading-relaxed">{item.definition}</p>
                   </div>
                 ))}
               </div>

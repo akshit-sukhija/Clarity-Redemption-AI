@@ -31,6 +31,7 @@ import { ConsequenceImpactChart } from './ConsequenceImpactChart';
 
 interface RedemptionSnapshotScreenProps {
   result: CalculationResult;
+  previousResult?: CalculationResult | null;
   onChangeAmount: () => void;
   onOpenComparison: () => void;
   onOpenExplanationDrawer: () => void;
@@ -44,6 +45,7 @@ interface RedemptionSnapshotScreenProps {
 
 export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> = ({
   result,
+  previousResult = null,
   onChangeAmount,
   onOpenComparison,
   onOpenExplanationDrawer,
@@ -58,6 +60,15 @@ export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> =
   const [showWhyDeductions, setShowWhyDeductions] = useState(false);
   const [showGuardrail, setShowGuardrail] = useState(false);
   const [selectedLotDetails, setSelectedLotDetails] = useState<'lot-a' | 'lot-b' | null>(null);
+
+  // Requested Feature A: Scenario Net-Proceeds Trend Indicator (Section 9 & 13)
+  const previousProceeds = previousResult && previousResult.grossRedemptionValue !== result.grossRedemptionValue
+    ? previousResult.estimatedProceeds
+    : null;
+
+  const proceedsDifference = previousProceeds !== null
+    ? result.estimatedProceeds - previousProceeds
+    : null;
 
   const lotA = result.lotBreakdown.find((l) => l.lotId === 'lot-a');
   const lotB = result.lotBreakdown.find((l) => l.lotId === 'lot-b');
@@ -245,14 +256,35 @@ export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> =
             </div>
 
             {/* STRONGEST VISUAL ANCHOR: ESTIMATED PROCEEDS */}
-            <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-sm md:text-right shrink-0 min-w-[250px] border border-emerald-400/30">
+            <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-sm md:text-right shrink-0 min-w-[270px] border border-emerald-400/30">
               <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-100 block">
                 YOU MAY RECEIVE (NET PROCEEDS)
               </span>
               <div className="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight mt-1">
                 {formatCurrency(result.estimatedProceeds)}
               </div>
-              <span className="text-[11px] text-emerald-100/90 block mt-1 font-medium">
+
+              {/* Feature A: Scenario Net-Proceeds Trend Indicator (Section 9 & 13) */}
+              {proceedsDifference !== null && (
+                <div
+                  className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/50 text-emerald-100 text-xs font-mono border border-emerald-300/30 shadow-2xs"
+                  title="Scenario exploration delta vs immediately previous scenario in this session"
+                >
+                  {Math.abs(proceedsDifference) < 0.005 ? (
+                    <span className="font-semibold">— Unchanged vs previous scenario</span>
+                  ) : proceedsDifference > 0 ? (
+                    <span className="font-semibold">
+                      ↑ {formatCurrency(proceedsDifference)} vs previous scenario ({formatCurrency(previousResult!.grossRedemptionValue, 0)})
+                    </span>
+                  ) : (
+                    <span className="font-semibold">
+                      ↓ {formatCurrency(Math.abs(proceedsDifference))} vs previous scenario ({formatCurrency(previousResult!.grossRedemptionValue, 0)})
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <span className="text-[11px] text-emerald-100/90 block mt-1.5 font-medium">
                 Estimated credit within 2 working days
               </span>
             </div>

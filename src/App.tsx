@@ -13,11 +13,13 @@ import { ExplanationDrawer } from './components/ExplanationDrawer';
 import { EndStateScreen } from './components/EndStateScreen';
 import { TestFixtureModal } from './components/TestFixtureModal';
 import { ExportRecordModal } from './components/ExportRecordModal';
+import { StandaloneGlossaryModal } from './components/StandaloneGlossaryModal';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('portfolio');
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
+  const [previousResult, setPreviousResult] = useState<CalculationResult | null>(null);
 
   // Initial session history items (Section 18)
   const [scenarioHistory, setScenarioHistory] = useState<ScenarioHistoryItem[]>([
@@ -50,11 +52,13 @@ export default function App() {
   // Explored Scenarios state tracked during session per Section 14
   const [exploredScenarios, setExploredScenarios] = useState<number[]>([25000, 50000, 75000]);
 
-  // Modals & Drawers state
+  // Modals & Drawers state (Phase 3: Standalone Glossary separate from Analyst)
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
+  const [glossaryInitialTab, setGlossaryInitialTab] = useState<'glossary' | 'rules'>('glossary');
 
   // Records a scenario in the session exploration history without consecutive duplicates
   const recordScenario = (amount: number, res: CalculationResult) => {
@@ -89,6 +93,9 @@ export default function App() {
   const handleProceedToSnapshot = (amount: number) => {
     try {
       const result = calculateRedemption(DEMO_FUND, amount);
+      if (calculationResult && calculationResult.grossRedemptionValue !== amount) {
+        setPreviousResult(calculationResult);
+      }
       setSelectedAmount(amount);
       setCalculationResult(result);
       recordScenario(amount, result);
@@ -111,6 +118,9 @@ export default function App() {
   const handleLiveAmountChange = (amount: number) => {
     try {
       const result = calculateRedemption(DEMO_FUND, amount);
+      if (calculationResult && calculationResult.grossRedemptionValue !== amount) {
+        setPreviousResult(calculationResult);
+      }
       setSelectedAmount(amount);
       setCalculationResult(result);
       recordScenario(amount, result);
@@ -135,7 +145,10 @@ export default function App() {
       <Header
         activeScreen={currentScreen}
         onOpenTestFixtures={() => setIsTestModalOpen(true)}
-        onOpenGlossary={() => setIsExplanationOpen(true)}
+        onOpenGlossary={() => {
+          setGlossaryInitialTab('glossary');
+          setIsGlossaryOpen(true);
+        }}
         onNavigateHome={() => setCurrentScreen('portfolio')}
       />
 
@@ -163,6 +176,7 @@ export default function App() {
         {currentScreen === 'redemption_snapshot' && calculationResult && (
           <RedemptionSnapshotScreen
             result={calculationResult}
+            previousResult={previousResult}
             onChangeAmount={handleChangeAmount}
             onOpenComparison={() => setIsComparisonOpen(true)}
             onOpenExplanationDrawer={() => setIsExplanationOpen(true)}
@@ -182,6 +196,7 @@ export default function App() {
             onStartNewScenario={() => {
               setSelectedAmount(null);
               setCalculationResult(null);
+              setPreviousResult(null);
               setCurrentScreen('enter_amount');
             }}
           />
@@ -190,8 +205,14 @@ export default function App() {
 
       {/* Global Footer */}
       <Footer
-        onOpenRules={() => setIsExplanationOpen(true)}
-        onOpenGlossary={() => setIsExplanationOpen(true)}
+        onOpenRules={() => {
+          setGlossaryInitialTab('rules');
+          setIsGlossaryOpen(true);
+        }}
+        onOpenGlossary={() => {
+          setGlossaryInitialTab('glossary');
+          setIsGlossaryOpen(true);
+        }}
       />
 
       {/* Overlay Modals & Drawers */}
@@ -209,6 +230,10 @@ export default function App() {
             onClose={() => setIsExplanationOpen(false)}
             result={calculationResult}
             onChangeAmount={handleChangeAmount}
+            onOpenGlossary={() => {
+              setGlossaryInitialTab('glossary');
+              setIsGlossaryOpen(true);
+            }}
           />
 
           <ExportRecordModal
@@ -220,19 +245,14 @@ export default function App() {
         </>
       )}
 
-      {/* Fallback if user opens glossary before calculating */}
-      {!calculationResult && isExplanationOpen && (
-        <ExplanationDrawer
-          isOpen={isExplanationOpen}
-          onClose={() => setIsExplanationOpen(false)}
-          result={calculateRedemption(DEMO_FUND, 50000)}
-          onChangeAmount={() => {
-            setIsExplanationOpen(false);
-            setCurrentScreen('enter_amount');
-          }}
-        />
-      )}
+      {/* Standalone Canonical Glossary Reference (Phase 3 & Section O) */}
+      <StandaloneGlossaryModal
+        isOpen={isGlossaryOpen}
+        onClose={() => setIsGlossaryOpen(false)}
+        initialTab={glossaryInitialTab}
+      />
 
+      {/* Automated Financial Verification Modal */}
       <TestFixtureModal
         isOpen={isTestModalOpen}
         onClose={() => setIsTestModalOpen(false)}

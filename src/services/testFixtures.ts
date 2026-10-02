@@ -1,5 +1,5 @@
 import { calculateRedemption } from './calculationEngine';
-import { DEMO_FUND } from '../data/fundData';
+import { DEMO_FUND, STATIC_GLOSSARY, RULE_VERIFICATION_SOURCES } from '../data/fundData';
 import { generateSnapshotCSV } from './exportService';
 
 export interface TestResultItem {
@@ -343,6 +343,65 @@ export function runAllTestFixtures(): {
       id: 'fixture-invariants-60k',
       name: 'Financial Invariants Check',
       amount: 60000,
+      expected: 'Pass',
+      actual: `Error: ${err.message}`,
+      passed: false,
+    });
+  }
+
+  // Test 13: Feature A — Scenario Net-Proceeds Trend Delta Invariant
+  try {
+    const res50k = calculateRedemption(DEMO_FUND, 50000);
+    const res75k = calculateRedemption(DEMO_FUND, 75000);
+    const res25k = calculateRedemption(DEMO_FUND, 25000);
+
+    const delta50to75 = res75k.estimatedProceeds - res50k.estimatedProceeds;
+    const delta75to25 = res25k.estimatedProceeds - res75k.estimatedProceeds;
+
+    const passDelta1 = isApproxEqual(delta50to75, 24749.75, 0.01);
+    const passDelta2 = isApproxEqual(delta75to25, -49705.50, 0.01);
+
+    results.push({
+      id: 'fixture-trend-delta',
+      name: 'Feature A: Scenario Net-Proceeds Trend Delta Verification',
+      amount: null,
+      expected: '₹50k → ₹75k: +₹24,749.75; ₹75k → ₹25k: -₹49,705.50',
+      actual: `50k→75k: ${delta50to75 > 0 ? '+' : ''}${delta50to75.toFixed(2)}; 75k→25k: ${delta75to25.toFixed(2)}`,
+      passed: passDelta1 && passDelta2,
+    });
+  } catch (err: any) {
+    results.push({
+      id: 'fixture-trend-delta',
+      name: 'Feature A: Trend Delta Verification',
+      amount: null,
+      expected: 'Pass',
+      actual: `Error: ${err.message}`,
+      passed: false,
+    });
+  }
+
+  // Test 14: Phase 3 & Section O — Canonical Glossary Dataset Integrity
+  try {
+    const requiredTerms = ['Exit load', 'STT', 'NAV', 'Units', 'Redemption', 'Estimated proceeds'];
+    const termsPresent = requiredTerms.every((t) =>
+      STATIC_GLOSSARY.some((g) => g.term.toLowerCase().includes(t.toLowerCase()))
+    );
+    const rulesComplete = RULE_VERIFICATION_SOURCES.length >= 2 &&
+      RULE_VERIFICATION_SOURCES.every((r) => r.sourceOrganization && r.sourceDocument && r.verificationStatus);
+
+    results.push({
+      id: 'fixture-canonical-glossary',
+      name: 'Phase 3 & Section O: Canonical Glossary & Rules Integrity',
+      amount: null,
+      expected: 'All core financial terms defined; statutory rules carry authority and verification status',
+      actual: termsPresent && rulesComplete ? `${STATIC_GLOSSARY.length} terms & ${RULE_VERIFICATION_SOURCES.length} statutory rules verified` : 'Missing terms or incomplete rules',
+      passed: termsPresent && rulesComplete,
+    });
+  } catch (err: any) {
+    results.push({
+      id: 'fixture-canonical-glossary',
+      name: 'Canonical Glossary Integrity',
+      amount: null,
       expected: 'Pass',
       actual: `Error: ${err.message}`,
       passed: false,

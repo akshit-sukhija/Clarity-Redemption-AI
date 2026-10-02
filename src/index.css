@@ -79,12 +79,25 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: #364B73;
 }
 
-/* Print Styles */
+/* Accessibility: Respect prefers-reduced-motion (Section 21) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print Styles: Clean Institutional Document Output (Section 10) */
 @media print {
   header,
   footer,
   nav,
   button,
+  input,
   .no-print {
     display: none !important;
   }
@@ -92,12 +105,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
   body {
     background-color: #ffffff !important;
     color: #111827 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .print-document {
     padding: 0 !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     max-width: 100% !important;
     color: #111827 !important;
+    background-color: #ffffff !important;
   }
 }
