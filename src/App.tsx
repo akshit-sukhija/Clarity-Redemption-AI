@@ -85,7 +85,7 @@ export default function App() {
 
       setCurrentScreen('redemption_snapshot');
     } catch (err: any) {
-      alert(err.message || 'Unable to calculate consequences for this amount.');
+      console.error(err?.message || 'Unable to calculate consequences for this amount.');
     }
   };
 
@@ -129,7 +129,10 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 pb-16">
         {currentScreen === 'portfolio' && (
-          <PortfolioScreen onViewFund={handleViewFund} />
+          <PortfolioScreen
+            onViewFund={handleViewFund}
+            onQuickExplore={handleProceedToSnapshot}
+          />
         )}
 
         {currentScreen === 'fund_details' && (

@@ -120,6 +120,38 @@ export interface WhyThisNumberTrace {
   verificationStatus: RuleVerificationStatus;
 }
 
+export type MarketStatus = 'LIVE' | 'DELAYED' | 'STALE' | 'OFFLINE' | 'CLOSED' | 'DEMO';
+
+export interface MarketInstrument {
+  id: string;
+  symbol: string;
+  name: string;
+  value: number;
+  formattedValue: string;
+  previousClose: number;
+  change: number;
+  changePercent: number;
+  open: number;
+  high: number;
+  low: number;
+  timestamp: string;
+  marketStatus: MarketStatus;
+  source: string;
+  freshness: string;
+  relevanceExplanation: string;
+}
+
+export interface ContextFeedItem {
+  id: string;
+  headline: string;
+  explanation: string;
+  source: string;
+  timestamp: string;
+  relevance: string;
+  impactNote: string;
+  tag?: string;
+}
+
 export interface MarketBenchmarkItem {
   name: string;
   val: string;

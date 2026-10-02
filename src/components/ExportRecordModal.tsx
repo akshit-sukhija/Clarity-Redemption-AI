@@ -19,6 +19,7 @@ export const ExportRecordModal: React.FC<ExportRecordModalProps> = ({
   fund,
 }) => {
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -43,13 +44,15 @@ export const ExportRecordModal: React.FC<ExportRecordModalProps> = ({
 
   const handleDownloadCSV = () => {
     try {
+      setDownloadError(null);
       const csv = generateSnapshotCSV(result, fund);
       const filename = `Clarity_Redemption_Snapshot_${result.grossRedemptionValue}_${fund.demoAsOfDate}.csv`;
       downloadCSVFile(csv, filename);
       setDownloadSuccess('CSV snapshot downloaded successfully');
       setTimeout(() => setDownloadSuccess(null), 3500);
     } catch {
-      alert('Unable to generate CSV for this snapshot.');
+      setDownloadError('Unable to generate CSV for this snapshot.');
+      setTimeout(() => setDownloadError(null), 3500);
     }
   };
 
@@ -104,6 +107,12 @@ export const ExportRecordModal: React.FC<ExportRecordModalProps> = ({
               <span className="text-xs text-[#247A5A] flex items-center gap-1 font-medium">
                 <Check className="w-3.5 h-3.5 text-[#247A5A]" />
                 {downloadSuccess}
+              </span>
+            )}
+
+            {downloadError && (
+              <span className="text-xs text-[#B65347] flex items-center gap-1 font-medium">
+                {downloadError}
               </span>
             )}
           </div>
