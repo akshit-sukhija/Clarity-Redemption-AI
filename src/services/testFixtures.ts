@@ -318,6 +318,37 @@ export function runAllTestFixtures(): {
     });
   }
 
+  // Test 12: Section 8 Invariants Check for Arbitrary Amount (₹60,000)
+  try {
+    const res60k = calculateRedemption(DEMO_FUND, 60000);
+    const inv1 = isApproxEqual(res60k.unitsRedeemed + res60k.remainingUnits, DEMO_FUND.totalUnits, 0.001);
+    const inv2 = isApproxEqual(res60k.unitsRedeemed * DEMO_FUND.illustrativeNAV, res60k.grossRedemptionValue, 0.01);
+    const inv3 = isApproxEqual(res60k.totalDeductions, res60k.exitLoadAmount + res60k.STTAmount, 0.001);
+    const inv4 = isApproxEqual(res60k.estimatedProceeds, res60k.grossRedemptionValue - res60k.totalDeductions, 0.001);
+    const lotUnitsSum = res60k.lotBreakdown.reduce((acc, l) => acc + l.unitsRedeemedFromLot, 0);
+    const inv5 = isApproxEqual(lotUnitsSum, res60k.unitsRedeemed, 0.001);
+    const inv6 = isApproxEqual(res60k.remainingUnits * DEMO_FUND.illustrativeNAV, res60k.remainingValueAtIllustrativeNAV, 0.01);
+
+    const allInvariantsPass = inv1 && inv2 && inv3 && inv4 && inv5 && inv6;
+    results.push({
+      id: 'fixture-invariants-60k',
+      name: 'Financial Invariants Check: Arbitrary Amount (₹60,000)',
+      amount: 60000,
+      expected: 'Units sum = 1,200; Gross = units × NAV; Proceeds = gross - deductions; Lot units sum = units redeemed',
+      actual: allInvariantsPass ? 'All 6 mathematical invariants hold precisely' : 'Invariant violation detected',
+      passed: allInvariantsPass,
+    });
+  } catch (err: any) {
+    results.push({
+      id: 'fixture-invariants-60k',
+      name: 'Financial Invariants Check',
+      amount: 60000,
+      expected: 'Pass',
+      actual: `Error: ${err.message}`,
+      passed: false,
+    });
+  }
+
   const passedTests = results.filter((r) => r.passed).length;
 
   return {

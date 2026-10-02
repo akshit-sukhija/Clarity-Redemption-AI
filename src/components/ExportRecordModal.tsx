@@ -24,15 +24,15 @@ export const ExportRecordModal: React.FC<ExportRecordModalProps> = ({
 
   if (!result) {
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-6 text-center border border-slate-200">
-          <h3 className="text-base font-bold text-slate-900 mb-2">Export Unavailable</h3>
-          <p className="text-xs text-slate-500 mb-4">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="relative w-full max-w-md bg-[#15233A] rounded-2xl shadow-xl p-6 text-center border border-[#26385A]">
+          <h3 className="text-base font-bold text-[#F5F7FA] mb-2">Export Unavailable</h3>
+          <p className="text-xs text-slate-400 mb-4">
             No active redemption scenario has been calculated yet. Please enter a redemption amount first to generate a snapshot record.
           </p>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800"
+            className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500"
           >
             Close
           </button>
@@ -58,10 +58,10 @@ export const ExportRecordModal: React.FC<ExportRecordModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-6 flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="relative w-full max-w-4xl bg-[#15233A] rounded-3xl shadow-2xl border border-[#26385A] overflow-hidden my-6 flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
+        <div className="px-6 py-4 border-b border-[#26385A] flex items-center justify-between bg-[#101B2E] text-white">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
               Record & Export Utility
@@ -82,50 +82,50 @@ export const ExportRecordModal: React.FC<ExportRecordModalProps> = ({
         </div>
 
         {/* Action Bar */}
-        <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="px-6 py-3 bg-[#15233A] border-b border-[#26385A] flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
             >
-              <Printer className="w-3.5 h-3.5 text-blue-400" />
+              <Printer className="w-3.5 h-3.5 text-white" />
               <span>Print / Save as PDF</span>
             </button>
 
             <button
               onClick={handleDownloadCSV}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#101B2E] hover:bg-[#1A2C4A] text-slate-300 hover:text-white border border-[#26385A] rounded-xl text-xs font-bold transition-all shadow-2xs"
             >
-              <FileDown className="w-3.5 h-3.5 text-blue-600" />
+              <FileDown className="w-3.5 h-3.5 text-blue-400" />
               <span>Export as CSV</span>
             </button>
           </div>
 
           {downloadSuccess && (
-            <div className="flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300">
-              <Check className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1 text-xs font-bold text-emerald-300 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-500/40">
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
               <span>{downloadSuccess}</span>
             </div>
           )}
 
-          <div className="text-[11px] text-slate-500 font-mono">
+          <div className="text-[11px] text-slate-400 font-mono">
             Values identical to screen result object
           </div>
         </div>
 
         {/* Scrollable Document Preview */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-100">
-          <div className="shadow-lg border border-slate-200 rounded-2xl overflow-hidden bg-white">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#0D1626]">
+          <div className="shadow-lg border border-slate-300 rounded-2xl overflow-hidden bg-white text-slate-900">
             <PrintDocumentView result={result} fund={fund} />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+        <div className="px-6 py-3.5 border-t border-[#26385A] bg-[#101B2E] flex items-center justify-between text-xs text-slate-400">
           <span>Single source of truth: deterministic calculation engine.</span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl font-bold text-slate-700 transition-colors"
+            className="px-4 py-1.5 bg-[#15233A] hover:bg-[#1A2C4A] border border-[#26385A] rounded-xl font-bold text-slate-300 hover:text-white transition-colors"
           >
             Close
           </button>

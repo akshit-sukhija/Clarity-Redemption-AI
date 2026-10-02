@@ -33,18 +33,16 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
       num: '01',
       title: 'REDEMPTION AMOUNT',
       icon: Coins,
-      color: 'blue',
-      badgeBg: 'bg-blue-100 text-blue-800 border-blue-200',
+      badgeBg: 'bg-blue-500/20 text-blue-300 border-blue-400/40',
       value: formatCurrency(result.grossRedemptionValue),
       formula: 'Gross redemption value entered by user',
-      description: 'The starting amount of units selected for liquidation before applicable statutory deductions.',
+      description: 'The starting gross value of units selected for liquidation before applicable statutory deductions.',
     },
     {
       num: '02',
       title: 'UNITS REDEEMED',
       icon: Split,
-      color: 'indigo',
-      badgeBg: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      badgeBg: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40',
       value: `${formatUnits(result.unitsRedeemed)} units`,
       formula: `Gross (${formatCurrency(result.grossRedemptionValue)}) ÷ Illustrative NAV (₹${result.illustrativeNAV.toFixed(2)})`,
       description: `Exact unrounded internal precision: ${result.unitsRedeemed}. Rounded only at presentation.`,
@@ -53,18 +51,16 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
       num: '03',
       title: 'FIFO LOT ALLOCATION',
       icon: Layers,
-      color: 'sky',
-      badgeBg: 'bg-sky-100 text-sky-800 border-sky-200',
+      badgeBg: 'bg-sky-500/20 text-sky-300 border-sky-400/40',
       value: `${lotA ? formatUnits(lotA.unitsRedeemedFromLot) : '0'} (Lot A) ${lotB && lotB.unitsRedeemedFromLot > 0 ? `+ ${formatUnits(lotB.unitsRedeemedFromLot)} (Lot B)` : ''}`,
       formula: 'First-In, First-Out sequence across purchase lots',
-      description: `Lot A (300 units allotted 2025-08-15) exhausted first. ${lotB && lotB.unitsRedeemedFromLot > 0 ? `Remaining ${formatUnits(lotB.unitsRedeemedFromLot)} units liquidated from Lot B.` : 'Lot B not touched.'}`,
+      description: `Lot A (300 units allotted 2025-08-15) exhausted first. ${lotB && lotB.unitsRedeemedFromLot > 0 ? `Remaining ${formatUnits(lotB.unitsRedeemedFromLot)} units liquidated from Lot B.` : 'Lot B untouched.'}`,
     },
     {
       num: '04',
       title: 'APPLICABLE DEDUCTIONS',
       icon: Percent,
-      color: 'amber',
-      badgeBg: 'bg-amber-100 text-amber-800 border-amber-200',
+      badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
       value: formatCurrency(result.totalDeductions),
       formula: `Exit Load (${formatCurrency(result.exitLoadAmount)}) + STT (${formatCurrency(result.STTAmount)})`,
       description: `Exit Load: 1% applied only to units from Lot B held < 365 days. STT: 0.001% statutory rate under Finance Act Section 98.`,
@@ -73,8 +69,7 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
       num: '05',
       title: 'ESTIMATED PROCEEDS',
       icon: CheckCircle2,
-      color: 'emerald',
-      badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
       value: formatCurrency(result.estimatedProceeds),
       formula: `Gross (${formatCurrency(result.grossRedemptionValue)}) − Total Deductions (${formatCurrency(result.totalDeductions)})`,
       description: 'The net proceeds credited to your bank account within the illustrative 2-working-day processing cycle.',
@@ -83,8 +78,7 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
       num: '06',
       title: 'REMAINING HOLDING',
       icon: PiggyBank,
-      color: 'slate',
-      badgeBg: 'bg-slate-100 text-slate-800 border-slate-200',
+      badgeBg: 'bg-slate-700 text-slate-300 border-slate-600',
       value: `${formatCurrency(result.remainingValueAtIllustrativeNAV)}`,
       formula: `Remaining Units (${formatUnits(result.remainingUnits)}) × Illustrative NAV (₹${result.illustrativeNAV.toFixed(2)})`,
       description: `${formatUnits(result.remainingUnits)} units remain invested. Derived directly from remaining units × Illustrative NAV.`,
@@ -92,42 +86,42 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
   ];
 
   return (
-    <div className="border-2 border-slate-200 rounded-2xl bg-white overflow-hidden shadow-xs">
+    <div className="border border-[#26385A] rounded-2xl bg-[#15233A] overflow-hidden shadow-sm">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors text-left"
+        className="w-full px-6 py-4 flex items-center justify-between bg-[#15233A] hover:bg-[#1A2C4A] transition-colors text-left"
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+          <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400">
             <Calculator className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-sm font-bold text-slate-900 block">
-              Visual Decision Pipeline (Stages 01 – 06)
+            <span className="text-sm font-bold text-[#F5F7FA] block">
+              Decision Trace (Stages 01 – 06)
             </span>
-            <span className="text-xs text-slate-500">
-              Interactive step-by-step trace of how your exact proceeds were calculated
+            <span className="text-xs text-slate-400">
+              Interactive step-by-step arithmetic pipeline
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs font-bold text-blue-600">
+        <div className="flex items-center gap-2 text-xs font-bold text-blue-400">
           <span>{isOpen ? 'Collapse Pipeline' : 'Inspect Pipeline'}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
 
       {isOpen && (
-        <div className="px-6 pb-6 pt-3 border-t border-slate-100 bg-slate-50/60 text-xs space-y-4">
+        <div className="px-6 pb-6 pt-3 border-t border-[#26385A] bg-[#101B2E] text-xs space-y-4">
           {/* Visual Step-by-Step Sequence */}
           <div className="space-y-3">
             {pipelineStages.map((stage, idx) => {
               const Icon = stage.icon;
               return (
                 <div key={stage.num} className="relative">
-                  <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="p-4 bg-[#15233A] rounded-xl border border-[#26385A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-lg bg-[#101B2E] border border-[#26385A] flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
@@ -136,24 +130,24 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
                             {stage.num} · {stage.title}
                           </span>
                         </div>
-                        <div className="font-mono text-xs text-slate-700 font-semibold">
+                        <div className="font-mono text-xs text-slate-200 font-semibold">
                           {stage.formula}
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-1">
+                        <p className="text-[11px] text-slate-400 mt-1">
                           {stage.description}
                         </p>
                       </div>
                     </div>
 
                     <div className="sm:text-right shrink-0 font-mono pl-11 sm:pl-0">
-                      <span className="text-base font-extrabold text-slate-900 block">
+                      <span className="text-base font-extrabold text-[#F5F7FA] block">
                         {stage.value}
                       </span>
                     </div>
                   </div>
 
                   {idx < pipelineStages.length - 1 && (
-                    <div className="flex justify-center my-1 text-slate-400">
+                    <div className="flex justify-center my-1 text-slate-600">
                       <ArrowDown className="w-3.5 h-3.5" />
                     </div>
                   )}
@@ -163,13 +157,13 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
           </div>
 
           {/* Lot Breakdown Table */}
-          <div className="mt-6 pt-4 border-t border-slate-200">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 block mb-2">
+          <div className="mt-6 pt-4 border-t border-[#26385A]">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
               Lot Level Allocation Table (FIFO)
             </span>
-            <div className="overflow-x-auto bg-white rounded-xl border border-slate-200">
+            <div className="overflow-x-auto bg-[#15233A] rounded-xl border border-[#26385A]">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+                <thead className="bg-[#101B2E] border-b border-[#26385A] text-slate-400">
                   <tr>
                     <th className="p-3 font-semibold">Purchase Lot</th>
                     <th className="p-3 font-semibold">Allotment Date</th>
@@ -179,29 +173,31 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
                     <th className="p-3 font-semibold text-right">Exit Load Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-mono">
+                <tbody className="divide-y divide-[#26385A] font-mono">
                   {result.lotBreakdown.map((lot) => (
-                    <tr key={lot.lotId} className="hover:bg-slate-50/50">
-                      <td className="p-3 font-sans font-bold text-slate-900">
+                    <tr key={lot.lotId} className="hover:bg-[#1A2C4A]">
+                      <td className="p-3 font-sans font-bold text-[#F5F7FA]">
                         {lot.lotName}
                       </td>
-                      <td className="p-3 text-slate-500">{lot.allotmentDate}</td>
-                      <td className="p-3 text-right text-slate-900 font-bold">
+                      <td className="p-3 text-slate-400">{lot.allotmentDate}</td>
+                      <td className="p-3 text-right text-[#F5F7FA] font-bold">
                         {formatUnits(lot.unitsRedeemedFromLot)}
                       </td>
-                      <td className="p-3 text-right text-slate-900">
+                      <td className="p-3 text-right text-[#F5F7FA]">
                         {formatCurrency(lot.redemptionValueFromLot)}
                       </td>
                       <td className="p-3 text-right">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          lot.applicableExitLoadRate > 0 ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-900'
+                          lot.applicableExitLoadRate > 0
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                         }`}>
                           {lot.applicableExitLoadRate > 0
                             ? `${(lot.applicableExitLoadRate * 100).toFixed(0)}%`
                             : '0%'}
                         </span>
                       </td>
-                      <td className="p-3 text-right font-extrabold text-slate-900">
+                      <td className="p-3 text-right font-extrabold text-[#F5F7FA]">
                         {formatCurrency(lot.exitLoadAmount)}
                       </td>
                     </tr>
