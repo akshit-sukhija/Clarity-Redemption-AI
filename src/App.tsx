@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppScreen, CalculationResult } from './types';
+import { AppScreen, CalculationResult, ScenarioHistoryItem } from './types';
 import { DEMO_FUND } from './data/fundData';
 import { calculateRedemption } from './services/calculationEngine';
 import { Header } from './components/Header';
@@ -19,6 +19,34 @@ export default function App() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
 
+  // Initial session history items (Section 18)
+  const [scenarioHistory, setScenarioHistory] = useState<ScenarioHistoryItem[]>([
+    {
+      id: 'scen-init-1',
+      amount: 25000,
+      timestamp: '08:30 AM',
+      netProceeds: 24999.75,
+      totalDeductions: 0.25,
+      unitsRedeemed: 164.474,
+    },
+    {
+      id: 'scen-init-2',
+      amount: 50000,
+      timestamp: '08:35 AM',
+      netProceeds: 49955.50,
+      totalDeductions: 44.50,
+      unitsRedeemed: 328.947,
+    },
+    {
+      id: 'scen-init-3',
+      amount: 75000,
+      timestamp: '08:40 AM',
+      netProceeds: 74705.25,
+      totalDeductions: 294.75,
+      unitsRedeemed: 493.421,
+    },
+  ]);
+
   // Explored Scenarios state tracked during session per Section 14
   const [exploredScenarios, setExploredScenarios] = useState<number[]>([25000, 50000, 75000]);
 
@@ -27,6 +55,25 @@ export default function App() {
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Records a scenario in the session exploration history without consecutive duplicates
+  const recordScenario = (amount: number, res: CalculationResult) => {
+    setScenarioHistory((prev) => {
+      if (prev.length > 0 && prev[prev.length - 1].amount === amount) {
+        return prev;
+      }
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const item: ScenarioHistoryItem = {
+        id: `scen-${Date.now()}-${amount}`,
+        amount,
+        timestamp: timeStr,
+        netProceeds: res.estimatedProceeds,
+        totalDeductions: res.totalDeductions,
+        unitsRedeemed: res.unitsRedeemed,
+      };
+      return [...prev.slice(-7), item];
+    });
+  };
 
   // Navigate to Fund Details
   const handleViewFund = () => {
@@ -44,6 +91,7 @@ export default function App() {
       const result = calculateRedemption(DEMO_FUND, amount);
       setSelectedAmount(amount);
       setCalculationResult(result);
+      recordScenario(amount, result);
 
       // Track explored scenarios without duplication
       setExploredScenarios((prev) => {
@@ -65,6 +113,7 @@ export default function App() {
       const result = calculateRedemption(DEMO_FUND, amount);
       setSelectedAmount(amount);
       setCalculationResult(result);
+      recordScenario(amount, result);
     } catch {
       // Ignore boundary errors during live drag
     }
@@ -120,6 +169,7 @@ export default function App() {
             onOpenExportRecord={() => setIsExportModalOpen(true)}
             onContinue={() => setCurrentScreen('prototype_end')}
             exploredScenarios={exploredScenarios}
+            scenarioHistory={scenarioHistory}
             onSelectExploredScenario={handleSelectAmountFromScenario}
             onLiveAmountChange={handleLiveAmountChange}
           />

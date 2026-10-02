@@ -22,11 +22,12 @@ import {
   PiggyBank,
   Check,
 } from 'lucide-react';
-import { CalculationResult } from '../types';
+import { CalculationResult, ScenarioHistoryItem } from '../types';
 import { DEMO_FUND } from '../data/fundData';
 import { formatCurrency, formatUnits } from '../services/calculationEngine';
 import { CalculationTrace } from './CalculationTrace';
 import { RuleTransparency } from './RuleTransparency';
+import { ConsequenceImpactChart } from './ConsequenceImpactChart';
 
 interface RedemptionSnapshotScreenProps {
   result: CalculationResult;
@@ -35,7 +36,8 @@ interface RedemptionSnapshotScreenProps {
   onOpenExplanationDrawer: () => void;
   onOpenExportRecord: () => void;
   onContinue: () => void;
-  exploredScenarios: number[];
+  exploredScenarios?: number[];
+  scenarioHistory?: ScenarioHistoryItem[];
   onSelectExploredScenario: (amount: number) => void;
   onLiveAmountChange?: (amount: number) => void;
 }
@@ -47,7 +49,8 @@ export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> =
   onOpenExplanationDrawer,
   onOpenExportRecord,
   onContinue,
-  exploredScenarios,
+  exploredScenarios = [],
+  scenarioHistory = [],
   onSelectExploredScenario,
   onLiveAmountChange,
 }) => {
@@ -159,8 +162,40 @@ export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> =
           </div>
         </div>
 
-        {/* Session Scenarios Explored Chips */}
-        {exploredScenarios.length > 0 && (
+        {/* Session Scenarios Explored (Section 18) */}
+        {scenarioHistory && scenarioHistory.length > 0 ? (
+          <div className="pt-3 border-t border-[#26385A] space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-1 text-[10px]">
+              <span className="text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <History className="w-3.5 h-3.5 text-blue-400" />
+                Scenarios Explored (Current Session)
+              </span>
+              <span className="text-slate-500 italic">
+                Session exploration only · No transactions occur
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {scenarioHistory.map((item) => {
+                const isActive = item.amount === result.grossRedemptionValue;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onSelectExploredScenario(item.amount)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
+                      isActive
+                        ? 'bg-blue-600 text-white border border-blue-400 font-bold shadow-xs'
+                        : 'bg-[#101B2E] text-slate-300 hover:text-white hover:bg-[#1A2C4A] border border-[#26385A]'
+                    }`}
+                    title={`Net proceeds: ${formatCurrency(item.netProceeds)} · Deductions: ${formatCurrency(item.totalDeductions)}`}
+                  >
+                    <span>{formatCurrency(item.amount, 0)}</span>
+                    <span className="text-[10px] text-slate-400 font-sans">• {item.timestamp}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : exploredScenarios.length > 0 ? (
           <div className="pt-3 border-t border-[#26385A] flex flex-wrap items-center gap-2 text-xs">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1">
               <History className="w-3 h-3 text-slate-400" />
@@ -183,7 +218,7 @@ export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> =
               Exploration only · NOT transactions
             </span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* PRIMARY RESULT HERO: WHAT THIS REDEMPTION MEANS */}
@@ -536,6 +571,9 @@ export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> =
           </div>
         </div>
       </div>
+
+      {/* SECTION 19: IMPACT WATERFALL CHART & CAPITAL GAINS TAX DISCLOSURE */}
+      <ConsequenceImpactChart result={result} />
 
       {/* COMPACT DRILL-DOWN CONTROLS: TRACE | WHY */}
       <div className="space-y-4">

@@ -3,6 +3,8 @@ import { ArrowRight, Layers, TrendingUp, ShieldCheck, Activity, Info, Calendar, 
 import { DEMO_FUND } from '../data/fundData';
 import { formatCurrency, formatUnits } from '../services/calculationEngine';
 
+import { MarketBenchmarkItem } from '../types';
+
 interface PortfolioScreenProps {
   onViewFund: () => void;
   onQuickExplore?: (amount: number) => void;
@@ -10,11 +12,11 @@ interface PortfolioScreenProps {
 
 export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({ onViewFund, onQuickExplore }) => {
   // P2: Contextual Market Pulse benchmarks (strictly isolated from calculations)
-  const marketBenchmarks = [
-    { name: 'NIFTY 50', val: '24,850.30', chg: '+0.35%', up: true },
-    { name: 'SENSEX', val: '81,220.15', chg: '+0.28%', up: true },
-    { name: 'INDIA VIX', val: '13.40', chg: '-1.10%', up: false },
-    { name: 'USD / INR', val: '83.95', chg: '+0.05%', up: true },
+  const marketBenchmarks: MarketBenchmarkItem[] = [
+    { name: 'NIFTY 50', val: '24,850.30', chg: '+0.35%', up: true, source: 'NSE Official Index', timestamp: '2026-10-01 15:30 IST', status: 'Fixed Contextual Reference' },
+    { name: 'SENSEX', val: '81,220.15', chg: '+0.28%', up: true, source: 'BSE Official Index', timestamp: '2026-10-01 15:30 IST', status: 'Fixed Contextual Reference' },
+    { name: 'INDIA VIX', val: '13.40', chg: '-1.10%', up: false, source: 'NSE Volatility', timestamp: '2026-10-01 15:30 IST', status: 'Fixed Contextual Reference' },
+    { name: 'USD / INR', val: '83.95', chg: '+0.05%', up: true, source: 'RBI Reference Rate', timestamp: '2026-10-01 13:30 IST', status: 'Fixed Contextual Reference' },
   ];
 
   return (
@@ -28,18 +30,21 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({ onViewFund, on
               MARKET PULSE
             </span>
             <span className="text-[10px] text-slate-400 bg-[#101B2E] px-2 py-0.5 rounded border border-[#26385A]">
-              Benchmark snapshot as of 2026-10-01 demo date
+              Snapshot as of 2026-10-01 demo date
             </span>
           </div>
           <span className="text-[10px] text-slate-400">
-            Contextual reference · Does not alter scheme NAV or calculations
+            Contextual reference · Does not alter scheme NAV (₹152.00) or redemption calculation
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
           {marketBenchmarks.map((item) => (
-            <div key={item.name} className="bg-[#101B2E] p-2 rounded-lg border border-[#26385A]/70 flex items-center justify-between">
-              <span className="text-slate-400 font-sans text-[11px]">{item.name}</span>
+            <div key={item.name} className="bg-[#101B2E] p-2 rounded-lg border border-[#26385A]/70 flex items-center justify-between" title={`Source: ${item.source} · As of ${item.timestamp}`}>
+              <div>
+                <span className="text-slate-400 font-sans text-[11px] block">{item.name}</span>
+                <span className="text-[9px] text-slate-500 font-sans block">{item.source}</span>
+              </div>
               <div className="text-right">
                 <span className="text-[#F5F7FA] font-bold block">{item.val}</span>
                 <span className={`text-[10px] ${item.up ? 'text-emerald-400' : 'text-slate-300'}`}>

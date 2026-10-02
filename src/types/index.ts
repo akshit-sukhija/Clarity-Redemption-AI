@@ -89,6 +89,51 @@ export interface GlossaryTerm {
   definition: string;
 }
 
+export interface ScenarioHistoryItem {
+  id: string;
+  amount: number;
+  timestamp: string; // e.g., '08:42 PM'
+  netProceeds: number;
+  totalDeductions: number;
+  unitsRedeemed: number;
+}
+
+export interface WhyThisNumberTrace {
+  id: string;
+  numberFormatted: string;
+  title: string;
+  component: string;
+  lotInvolved: string;
+  ruleApplied: string;
+  sourceDocument: string;
+  sourceAuthority: string;
+  verifiedAsOf: string;
+  verificationStatus: 'VERIFIED' | 'VALIDATION REQUIRED';
+}
+
+export interface MarketBenchmarkItem {
+  name: string;
+  val: string;
+  chg: string;
+  up: boolean;
+  source: string;
+  timestamp: string;
+  status: 'Fixed Contextual Reference' | 'Illustrative';
+}
+
+export interface LiveGroundingVerification {
+  ruleId: string;
+  ruleName: string;
+  regulatoryBody: string;
+  statutoryAct: string;
+  summary: string;
+  groundedSources: { title: string; uri: string }[];
+  searchQueries: string[];
+  verificationStatus: 'VERIFIED' | 'VALIDATION REQUIRED';
+  verifiedAt: string;
+  sourceText: string;
+}
+
 export type AppScreen =
   | 'portfolio'
   | 'fund_details'
