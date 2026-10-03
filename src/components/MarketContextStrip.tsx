@@ -34,15 +34,15 @@ export const MarketContextStrip: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#A66A16]" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#1E211F]">
-            Market context
+            Market Context
           </span>
           <span className="text-[10px] text-[#666861] bg-[#F1EFE9] px-2 py-0.5 rounded border border-[#DDD9D0]">
-            {marketProvider.getConnectionLabel()}
+            Demo snapshot · Context only
           </span>
         </div>
 
         <div className="flex items-center gap-2 text-[11px] text-[#8A8D86]">
-          <span>Context only — does not alter illustrative NAV (₹152.00) or redemption proceeds</span>
+          <span>Does not alter redemption calculation</span>
         </div>
       </div>
 

@@ -10,6 +10,7 @@ import {
   ExternalLink,
   ShieldCheck,
   BookOpen,
+  Wrench,
 } from 'lucide-react';
 import { CalculationResult, ScenarioHistoryItem } from '../types';
 import { DEMO_FUND } from '../data/fundData';
@@ -30,8 +31,17 @@ interface ClarityTerminalProps {
   onOpenGlossary: (tab?: 'glossary' | 'rules') => void;
   onViewFund: () => void;
   onContinue: () => void;
+  onOpenDiagnostics?: () => void;
   scenarioHistory: ScenarioHistoryItem[];
 }
+
+const QUICK_ACTIONS = [
+  { label: '₹10K', amount: 10000 },
+  { label: '₹25K', amount: 25000 },
+  { label: '₹50K', amount: 50000 },
+  { label: '₹1L', amount: 100000 },
+  { label: 'Full Balance', amount: DEMO_FUND.holdingValue },
+];
 
 export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
   result,
@@ -44,6 +54,7 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
   onOpenGlossary,
   onViewFund,
   onContinue,
+  onOpenDiagnostics,
   scenarioHistory = [],
 }) => {
   const [selectedLotDetails, setSelectedLotDetails] = useState<'lot-a' | 'lot-b' | null>(null);
@@ -56,6 +67,13 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
 
   const proceedsDifference =
     previousProceeds !== null ? result.estimatedProceeds - previousProceeds : null;
+
+  // Visual redemption-percentage indicator (Section 6)
+  const redemptionPercentage = Math.min(
+    100,
+    Math.max(0, (result.grossRedemptionValue / DEMO_FUND.holdingValue) * 100)
+  );
+  const formattedPercentage = redemptionPercentage.toFixed(1);
 
   // Dynamically derived lot allocations
   const lotA = result.lotBreakdown.find((l) => l.lotId === 'lot-a');
@@ -143,6 +161,9 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* COMPACT MARKET CONTEXT (Section 3 & 4) */}
+      <MarketContextStrip />
 
       {/* PRIMARY 3-COLUMN WORKSPACE: HOLDING (Col 1) | SNAPSHOT HERO (Col 2) | RELEVANT CONTEXT (Col 3) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -234,39 +255,44 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
         {/* ============================================================== */}
         <div className="lg:col-span-6 space-y-4">
           <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
-            {/* Amount Input & Quick Exploration Controls */}
+            {/* Amount Input & Dedicated Quick Actions Row (Section 5 & 6) */}
             <div className="space-y-3 pb-4 border-b border-[#DDD9D0]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
-                    Zone C · Product Hero
+                    Redemption Snapshot
                   </span>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-baseline gap-2 mt-0.5">
                     <span className="text-xs font-semibold text-[#666861]">Amount to redeem:</span>
-                    <span className="text-xl sm:text-2xl font-bold font-mono text-[#1E211F]">
+                    <span className="text-2xl sm:text-3xl font-bold font-mono text-[#1E211F]">
                       {formatCurrency(result.grossRedemptionValue, 0)}
                     </span>
                   </div>
                 </div>
 
-                {/* Quick Benchmark Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
-                  {[25000, 50000, 75000, DEMO_FUND.holdingValue].map((amt) => {
-                    const isSelected = result.grossRedemptionValue === amt;
-                    return (
-                      <button
-                        key={amt}
-                        onClick={() => onLiveAmountChange(amt)}
-                        className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#247A5A] text-white shadow-xs'
-                            : 'bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] border border-[#DDD9D0]'
-                        }`}
-                      >
-                        {amt === DEMO_FUND.holdingValue ? 'Full amount' : formatCurrency(amt, 0)}
-                      </button>
-                    );
-                  })}
+                {/* DEDICATED QUICK ACTIONS ROW (Section 5) */}
+                <div className="flex flex-col items-start sm:items-end gap-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86]">
+                    Quick Actions
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
+                    {QUICK_ACTIONS.map((action) => {
+                      const isSelected = Math.abs(result.grossRedemptionValue - action.amount) < 1;
+                      return (
+                        <button
+                          key={action.label}
+                          onClick={() => onLiveAmountChange(Math.min(action.amount, DEMO_FUND.holdingValue))}
+                          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#247A5A] text-white shadow-xs'
+                              : 'bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] border border-[#DDD9D0]'
+                          }`}
+                        >
+                          {action.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -279,7 +305,7 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
                   step="1000"
                   value={result.grossRedemptionValue}
                   onChange={handleSliderChange}
-                  className="w-full cursor-pointer"
+                  className="w-full cursor-pointer accent-[#247A5A]"
                   aria-label="Adjust redemption amount"
                 />
                 <div className="flex justify-between text-[11px] text-[#8A8D86] font-mono">
@@ -288,6 +314,32 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
                     Lot A 0% load boundary: {formatCurrency(lotABoundaryAmount, 0)}
                   </span>
                   <span>Max: {formatCurrency(DEMO_FUND.holdingValue, 0)}</span>
+                </div>
+              </div>
+
+              {/* VISUAL REDEMPTION-PERCENTAGE INDICATOR (Section 6) */}
+              <div className="p-3 bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold font-mono text-[#1E211F]">
+                      {formattedPercentage}%
+                    </span>
+                    <span className="text-[#666861] text-[11px]">of available holding</span>
+                  </div>
+                  <span className="text-[11px] text-[#8A8D86]">
+                    Available holding: <strong className="font-mono text-[#1E211F]">{formatCurrency(DEMO_FUND.holdingValue, 0)}</strong>
+                  </span>
+                </div>
+                <div className="w-full bg-[#DDD9D0] rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-[#247A5A] h-full rounded-full transition-all duration-150"
+                    style={{ width: `${redemptionPercentage}%` }}
+                    role="progressbar"
+                    aria-valuenow={redemptionPercentage}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label="Redemption percentage of total holding"
+                  />
                 </div>
               </div>
             </div>
@@ -474,163 +526,219 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
         </div>
       </div>
 
-      {/* LOWER 2-COLUMN WORKSPACE: SCENARIOS (Left) | WHY THIS NUMBER / EVIDENCE (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
-        {/* ============================================================== */}
-        {/* ZONE E: SCENARIO EXPLORER & SESSION HISTORY (6 cols) */}
-        {/* ============================================================== */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#DDD9D0]">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
-                  Zone E · Scenario Exploration
-                </span>
-                <h3 className="text-sm font-bold text-[#1E211F]">
-                  Benchmark scenario comparison
-                </h3>
-              </div>
-              <button
-                onClick={onOpenComparison}
-                className="text-xs font-semibold text-[#247A5A] hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <span>Full comparison modal</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Benchmark Scenarios Comparison Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
-                <thead>
-                  <tr className="border-b border-[#DDD9D0] text-[#8A8D86] text-[10px] uppercase tracking-wider font-sans">
-                    <th className="pb-2 font-semibold">Amount</th>
-                    <th className="pb-2 font-semibold text-right">Units</th>
-                    <th className="pb-2 font-semibold text-right">Deductions</th>
-                    <th className="pb-2 font-semibold text-right">Proceeds</th>
-                    <th className="pb-2 font-semibold text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#DDD9D0]/60">
-                  {[
-                    { amt: 25000, label: '₹25,000', note: 'Lot A only (0% load)' },
-                    { amt: 50000, label: '₹50,000', note: 'Crosses into Lot B' },
-                    { amt: 75000, label: '₹75,000', note: 'Higher Lot B share' },
-                    { amt: DEMO_FUND.holdingValue, label: 'Full', note: '100% liquidated' },
-                  ].map((item) => {
-                    const isCurrent = result.grossRedemptionValue === item.amt;
-                    // Compute basic row values
-                    const units = item.amt / result.illustrativeNAV;
-                    const lotAUnits = Math.min(300, units);
-                    const lotBUnits = Math.max(0, units - 300);
-                    const exitLoad = lotBUnits * result.illustrativeNAV * 0.01;
-                    const stt = Math.round(item.amt * 0.00001 * 100) / 100;
-                    const deductions = exitLoad + stt;
-                    const proceeds = item.amt - deductions;
-
-                    return (
-                      <tr
-                        key={item.amt}
-                        className={`transition-colors ${
-                          isCurrent ? 'bg-[#247A5A]/5 font-bold' : 'hover:bg-[#F1EFE9]'
-                        }`}
-                      >
-                        <td className="py-2.5 font-bold text-[#1E211F]">
-                          <div>{item.label}</div>
-                          <div className="text-[10px] text-[#8A8D86] font-sans font-normal">{item.note}</div>
-                        </td>
-                        <td className="py-2.5 text-right text-[#666861]">{units.toFixed(3)}</td>
-                        <td className="py-2.5 text-right text-[#A66A16]">{formatCurrency(deductions)}</td>
-                        <td className="py-2.5 text-right text-[#247A5A]">{formatCurrency(proceeds)}</td>
-                        <td className="py-2.5 text-right font-sans">
-                          {isCurrent ? (
-                            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#247A5A] text-white rounded">
-                              Active
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => onLiveAmountChange(item.amt)}
-                              className="px-2 py-0.5 text-[10px] font-semibold bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] rounded border border-[#DDD9D0] cursor-pointer"
-                            >
-                              Explore
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Session Explored Scenarios (Starts Strictly Empty, Section 30) */}
-            <div className="pt-3 border-t border-[#DDD9D0] space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[#8A8D86] font-semibold uppercase tracking-wider flex items-center gap-1.5 text-[10px]">
-                  <History className="w-3.5 h-3.5 text-[#666861]" />
-                  Explored in this session ({scenarioHistory.length})
-                </span>
-                <span className="text-[10px] text-[#8A8D86]">
-                  Session only · No transactions occur
-                </span>
-              </div>
-
-              {scenarioHistory.length === 0 ? (
-                <div className="p-3 bg-[#F1EFE9] rounded-lg border border-[#DDD9D0] text-center text-xs text-[#8A8D86]">
-                  No additional scenarios explored yet. Use the slider or chips above to explore different amounts.
-                </div>
-              ) : (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {scenarioHistory.map((item) => {
-                    const isActive = item.amount === result.grossRedemptionValue;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => onSelectExploredScenario(item.amount)}
-                        className={`px-2.5 py-1 rounded-md text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer ${
-                          isActive
-                            ? 'bg-[#247A5A] text-white font-bold'
-                            : 'bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] border border-[#DDD9D0]'
-                        }`}
-                        title={`Proceeds: ${formatCurrency(item.netProceeds)} · Deductions: ${formatCurrency(item.totalDeductions)}`}
-                      >
-                        <span>{formatCurrency(item.amount, 0)}</span>
-                        <span className="text-[10px] opacity-75 font-sans">• {item.timestamp}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+      {/* ============================================================== */}
+      {/* 4. CONSEQUENCE EXPLANATION: WHY THIS NUMBER? & HOW THIS WAS CALCULATED (Section 2 & 9) */}
+      {/* ============================================================== */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center justify-between pb-1 border-b border-[#DDD9D0]">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#247A5A] block">
+              Consequence Explanation
+            </span>
+            <h3 className="text-sm font-bold text-[#1E211F]">
+              Why this number & how it was calculated
+            </h3>
           </div>
+          <span className="text-xs text-[#8A8D86]">
+            Progressive evidence & trace
+          </span>
         </div>
 
-        {/* ============================================================== */}
-        {/* ZONE F: WHY THIS NUMBER? & EVIDENCE CHAIN (6 cols) */}
-        {/* ============================================================== */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <RuleTransparency result={result} defaultExpanded={false} />
           <CalculationTrace result={result} defaultExpanded={false} />
-
-          <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-4 shadow-xs flex items-center justify-between text-xs text-[#666861]">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-[#247A5A]" />
-              <span>Reference canonical glossary or statutory circulars</span>
-            </div>
-            <button
-              onClick={() => onOpenGlossary('rules')}
-              className="text-[#247A5A] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <span>Open rules register</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* LEVEL 5: COMPACT SUPPORTING MARKET CONTEXT (Section 8 & 25) */}
-      <div className="pt-2">
-        <MarketContextStrip />
+      {/* ============================================================== */}
+      {/* 5. SCENARIO EXPLORATION: COMPARISON & SESSION HISTORY (Section 2 & 8) */}
+      {/* ============================================================== */}
+      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#DDD9D0]">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
+              Scenario Exploration
+            </span>
+            <h3 className="text-sm font-bold text-[#1E211F]">
+              Benchmark scenario comparison
+            </h3>
+          </div>
+          <button
+            onClick={onOpenComparison}
+            className="text-xs font-semibold text-[#247A5A] hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <span>Full comparison modal</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Benchmark Scenarios Comparison Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs font-mono">
+            <thead>
+              <tr className="border-b border-[#DDD9D0] text-[#8A8D86] text-[10px] uppercase tracking-wider font-sans">
+                <th className="pb-2 font-semibold">Amount</th>
+                <th className="pb-2 font-semibold text-right">Units</th>
+                <th className="pb-2 font-semibold text-right">Deductions</th>
+                <th className="pb-2 font-semibold text-right">Proceeds</th>
+                <th className="pb-2 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#DDD9D0]/60">
+              {[
+                { amt: 25000, label: '₹25,000', note: 'Lot A only (0% load)' },
+                { amt: 50000, label: '₹50,000', note: 'Crosses into Lot B' },
+                { amt: 75000, label: '₹75,000', note: 'Higher Lot B share' },
+                { amt: DEMO_FUND.holdingValue, label: 'Full', note: '100% liquidated' },
+              ].map((item) => {
+                const isCurrent = result.grossRedemptionValue === item.amt;
+                // Compute basic row values
+                const units = item.amt / result.illustrativeNAV;
+                const lotAUnits = Math.min(300, units);
+                const lotBUnits = Math.max(0, units - 300);
+                const exitLoad = lotBUnits * result.illustrativeNAV * 0.01;
+                const stt = Math.round(item.amt * 0.00001 * 100) / 100;
+                const deductions = exitLoad + stt;
+                const proceeds = item.amt - deductions;
+
+                return (
+                  <tr
+                    key={item.amt}
+                    className={`transition-colors ${
+                      isCurrent ? 'bg-[#247A5A]/5 font-bold' : 'hover:bg-[#F1EFE9]'
+                    }`}
+                  >
+                    <td className="py-2.5 font-bold text-[#1E211F]">
+                      <div>{item.label}</div>
+                      <div className="text-[10px] text-[#8A8D86] font-sans font-normal">{item.note}</div>
+                    </td>
+                    <td className="py-2.5 text-right text-[#666861]">{units.toFixed(3)}</td>
+                    <td className="py-2.5 text-right text-[#A66A16]">{formatCurrency(deductions)}</td>
+                    <td className="py-2.5 text-right text-[#247A5A]">{formatCurrency(proceeds)}</td>
+                    <td className="py-2.5 text-right font-sans">
+                      {isCurrent ? (
+                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#247A5A] text-white rounded">
+                          Active
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => onLiveAmountChange(item.amt)}
+                          className="px-2 py-0.5 text-[10px] font-semibold bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] rounded border border-[#DDD9D0] cursor-pointer"
+                        >
+                          Explore
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Session Explored Scenarios */}
+        <div className="pt-3 border-t border-[#DDD9D0] space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[#8A8D86] font-semibold uppercase tracking-wider flex items-center gap-1.5 text-[10px]">
+              <History className="w-3.5 h-3.5 text-[#666861]" />
+              Explored in this session ({scenarioHistory.length})
+            </span>
+            <span className="text-[10px] text-[#8A8D86]">
+              Session only · No transactions occur
+            </span>
+          </div>
+
+          {scenarioHistory.length === 0 ? (
+            <div className="p-3 bg-[#F1EFE9] rounded-lg border border-[#DDD9D0] text-center text-xs text-[#8A8D86]">
+              No additional scenarios explored yet. Use the Quick Actions or slider above to explore different amounts.
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {scenarioHistory.map((item) => {
+                const isActive = item.amount === result.grossRedemptionValue;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onSelectExploredScenario(item.amount)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer ${
+                      isActive
+                        ? 'bg-[#247A5A] text-white font-bold'
+                        : 'bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] border border-[#DDD9D0]'
+                    }`}
+                    title={`Proceeds: ${formatCurrency(item.netProceeds)} · Deductions: ${formatCurrency(item.totalDeductions)}`}
+                  >
+                    <span>{formatCurrency(item.amount, 0)}</span>
+                    <span className="text-[10px] opacity-75 font-sans">• {item.timestamp}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* 6. SUPPORT & UTILITY BAR (Section 2 & 11) */}
+      {/* ============================================================== */}
+      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-4 sm:p-5 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
+            Support & Utility
+          </span>
+          <span className="text-xs text-[#DDD9D0] hidden sm:inline">•</span>
+          <span className="text-xs text-[#666861] hidden sm:inline">
+            Non-advisory explanation, evidence inspection, and decision snapshots
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={onOpenExplanationDrawer}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer shadow-xs"
+            title="Ask neutral consequence and context questions"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#247A5A]" />
+            <span>Ask Clarity</span>
+          </button>
+
+          <button
+            onClick={onOpenExportRecord}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer shadow-xs"
+            title="Export or print redemption snapshot record"
+          >
+            <FileDown className="w-3.5 h-3.5 text-[#666861]" />
+            <span>Save snapshot</span>
+          </button>
+
+          <button
+            onClick={() => onOpenGlossary('rules')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer shadow-xs"
+            title="Inspect scheme SID and statutory rules"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-[#247A5A]" />
+            <span>Rules register</span>
+          </button>
+
+          <button
+            onClick={() => onOpenGlossary('glossary')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer shadow-xs"
+            title="Financial terms and definitions"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#666861]" />
+            <span>Financial glossary</span>
+          </button>
+
+          {onOpenDiagnostics && (
+            <button
+              onClick={onOpenDiagnostics}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#666861] hover:text-[#1E211F] bg-[#F1EFE9] hover:bg-[#E8E5DD] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer"
+              title="Inspect automated deterministic test fixtures"
+            >
+              <Wrench className="w-3.5 h-3.5 text-[#8A8D86]" />
+              <span>Diagnostics</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

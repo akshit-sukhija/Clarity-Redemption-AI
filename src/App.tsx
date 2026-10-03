@@ -103,6 +103,7 @@ export default function App() {
             }}
             onViewFund={() => setCurrentScreen('fund_details')}
             onContinue={() => setCurrentScreen('prototype_end')}
+            onOpenDiagnostics={() => setIsTestModalOpen(true)}
             scenarioHistory={scenarioHistory}
           />
         )}
