@@ -408,6 +408,32 @@ export function runAllTestFixtures(): {
     });
   }
 
+  // Test 15: Holding Period Window Convention (365 days)
+  try {
+    const lotA = DEMO_FUND.lots[0];
+    const lotB = DEMO_FUND.lots[1];
+    // Lot A: 412 days held (> 365 days) -> exitLoadEligible is false
+    // Lot B: 214 days held (<= 365 days) -> exitLoadEligible is true
+    const conventionPass = !lotA.exitLoadEligible && lotB.exitLoadEligible && lotB.exitLoadRate === 0.01;
+    results.push({
+      id: 'fixture-365day-convention',
+      name: 'Holding Period Convention: > 365 days (0% load) vs <= 365 days (1% demo load)',
+      amount: null,
+      expected: 'Lot A (412d) load-free (0%); Lot B (214d) load-applicable (1%)',
+      actual: conventionPass ? 'Convention holds: >365d is 0%, <=365d is 1%' : 'Holding period mismatch',
+      passed: conventionPass,
+    });
+  } catch (err: any) {
+    results.push({
+      id: 'fixture-365day-convention',
+      name: 'Holding Period Convention',
+      amount: null,
+      expected: 'Pass',
+      actual: `Error: ${err.message}`,
+      passed: false,
+    });
+  }
+
   const passedTests = results.filter((r) => r.passed).length;
 
   return {

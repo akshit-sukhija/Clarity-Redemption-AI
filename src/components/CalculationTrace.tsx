@@ -58,7 +58,7 @@ export const CalculationTrace: React.FC<CalculationTraceProps> = ({
       step: '6',
       title: 'Estimated proceeds',
       value: formatCurrency(result.estimatedProceeds),
-      detail: `${formatCurrency(result.grossRedemptionValue)} gross − ${formatCurrency(result.totalDeductions)} deductions. Indicative processing within T+2 working days.`,
+      detail: `${formatCurrency(result.grossRedemptionValue)} gross − ${formatCurrency(result.totalDeductions)} deductions. Indicative processing timeline; actual timing depends on scheme terms, cut-off timing, and business days.`,
     },
     {
       step: '7',

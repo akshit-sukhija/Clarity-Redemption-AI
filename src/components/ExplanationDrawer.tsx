@@ -13,6 +13,7 @@ import { CalculationResult, LiveGroundingVerification } from '../types';
 import {
   CURATED_QUESTIONS,
   COMMON_ADVICE_QUERIES,
+  chatWithClarityAnalyst,
   explainWithGemini,
   getTemplateExplanation,
   ExplanationResponse,
@@ -31,6 +32,18 @@ interface ExplanationDrawerProps {
   onOpenGlossary?: () => void;
 }
 
+interface ChatTurn {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  source?: 'template' | 'llm' | 'grounded_search';
+  mode?: 'explain' | 'research';
+  groundedSources?: { title: string; uri: string }[];
+  searchQueries?: string[];
+  isAdviceQuestion?: boolean;
+}
+
 export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
   isOpen,
   onClose,
@@ -38,14 +51,25 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
   onChangeAmount,
   onOpenGlossary,
 }) => {
-  // Tabs: explain, calculation, evidence (Section 18: No duplicated glossary in Analyst)
+  // Tabs: explain (chat), calculation, evidence (Section 18: No duplicated glossary in Analyst)
   const [activeTab, setActiveTab] = useState<'explain' | 'calculation' | 'evidence'>('explain');
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-  const [currentResponse, setCurrentResponse] = useState<ExplanationResponse | null>(null);
   const [customInput, setCustomInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const chatBottomRef = React.useRef<HTMLDivElement>(null);
 
-  // Live Grounding Verification State
+  // Multi-turn chat message thread
+  const [messages, setMessages] = useState<ChatTurn[]>(() => [
+    {
+      id: 'msg-welcome',
+      sender: 'assistant',
+      text: `Hello. I am the Clarity Analyst. I can explain the consequences of your ${formatCurrency(result.grossRedemptionValue)} redemption scenario, how units were allocated under FIFO, applicable demo exit loads, and statutory STT. What would you like to understand?`,
+      timestamp: 'Initial context',
+      mode: 'explain',
+      source: 'template',
+    },
+  ]);
+
+  // Live Grounding Verification State for Evidence Tab
   const [selectedRuleId, setSelectedRuleId] = useState<string>('stt-equity');
   const [verificationResult, setVerificationResult] = useState<LiveGroundingVerification | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -61,20 +85,65 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Scroll to bottom on new message
+  useEffect(() => {
+    if (activeTab === 'explain') {
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, activeTab, isLoading]);
+
   if (!isOpen) return null;
 
   const handleAskQuestion = async (q: string) => {
-    setSelectedQuestion(q);
+    if (!q.trim() || isLoading) return;
+
+    const userMsg: ChatTurn = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: q.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
     try {
-      const immediate = getTemplateExplanation(q, result);
-      setCurrentResponse(immediate);
+      // Build conversation history for multi-turn model
+      const historyTurns = messages
+        .filter((m) => m.id !== 'msg-welcome')
+        .map((m) => ({
+          role: (m.sender === 'user' ? 'user' : 'model') as 'user' | 'model',
+          text: m.text,
+        }));
 
-      const enhanced = await explainWithGemini(q, result);
-      setCurrentResponse(enhanced);
+      const res: ExplanationResponse = await chatWithClarityAnalyst(historyTurns, q.trim(), result);
+
+      const assistantMsg: ChatTurn = {
+        id: `asst-${Date.now()}`,
+        sender: 'assistant',
+        text: res.answer,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        source: res.source,
+        mode: res.mode,
+        groundedSources: res.groundedSources,
+        searchQueries: res.searchQueries,
+        isAdviceQuestion: res.isAdviceQuestion,
+      };
+
+      setMessages((prev) => [...prev, assistantMsg]);
     } catch {
-      setCurrentResponse(getTemplateExplanation(q, result));
+      const fallback = getTemplateExplanation(q.trim(), result);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `asst-${Date.now()}`,
+          sender: 'assistant',
+          text: fallback.answer,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          source: 'template',
+          mode: fallback.mode,
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -203,11 +272,8 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
                     <button
                       key={q}
                       onClick={() => handleAskQuestion(q)}
-                      className={`text-left p-3 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
-                        selectedQuestion === q
-                          ? 'border-[#247A5A] bg-[#247A5A]/10 text-[#247A5A] font-semibold'
-                          : 'border-[#DDD9D0] bg-[#F1EFE9] hover:bg-[#E8E5DD] text-[#1E211F]'
-                      }`}
+                      disabled={isLoading}
+                      className="text-left p-3 rounded-lg border border-[#DDD9D0] bg-[#F1EFE9] hover:bg-[#E8E5DD] text-[#1E211F] text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {q}
                     </button>
@@ -237,65 +303,69 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Active Answer Card */}
-              {selectedQuestion && (
-                <div className="p-4 bg-[#F1EFE9] rounded-xl border border-[#DDD9D0] space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#DDD9D0]">
-                    <span className="text-xs font-bold text-[#1E211F]">
-                      {selectedQuestion}
-                    </span>
-                    <span className="text-[10px] font-semibold text-[#247A5A] bg-[#247A5A]/10 px-2 py-0.5 rounded">
-                      {currentResponse?.mode === 'research' ? 'Search grounded' : 'Active scenario'}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-[#1E211F] leading-relaxed">
-                    {isLoading ? 'Analyzing consequences...' : currentResponse?.answer}
-                  </p>
-
-                  {/* Citations if available */}
-                  {currentResponse?.groundedSources && currentResponse.groundedSources.length > 0 && (
-                    <div className="pt-2 border-t border-[#DDD9D0] space-y-1.5 text-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
-                        Verified Sources:
+              {/* Multi-Turn Conversation Thread (Section 38, 39, 40) */}
+              <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition-colors ${
+                      msg.sender === 'user'
+                        ? 'bg-[#F1EFE9] border-[#DDD9D0] ml-6'
+                        : 'bg-[#FFFFFF] border-[#DDD9D0] mr-2 shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between pb-1 border-b border-[#DDD9D0]/60">
+                      <span className="font-bold text-[#1E211F]">
+                        {msg.sender === 'user' ? 'You' : 'Clarity Analyst'}
                       </span>
-                      {currentResponse.groundedSources.map((s, idx) => (
-                        <a
-                          key={idx}
-                          href={s.uri}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-between p-2 rounded bg-[#FFFFFF] border border-[#DDD9D0] text-xs text-[#247A5A] hover:underline"
-                        >
-                          <span className="truncate pr-2">{s.title}</span>
-                          <ExternalLink className="w-3.5 h-3.5 shrink-0 text-[#8A8D86]" />
-                        </a>
-                      ))}
+                      <div className="flex items-center gap-1.5">
+                        {msg.sender === 'assistant' && (
+                          <span className="text-[9px] font-semibold px-2 py-0.5 rounded bg-[#247A5A]/10 text-[#247A5A]">
+                            {msg.source === 'grounded_search' && (msg.groundedSources?.length ?? 0) > 0
+                              ? 'Search grounded (Google)'
+                              : msg.mode === 'research'
+                              ? 'Prototype source reference'
+                              : 'Scenario explanation'}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-[#8A8D86] font-mono">{msg.timestamp}</span>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Quick actions if advice query */}
-                  {currentResponse?.isAdviceQuestion && (
-                    <div className="pt-2 border-t border-[#DDD9D0] flex gap-2">
-                      <button
-                        onClick={onClose}
-                        className="px-3 py-1.5 bg-[#247A5A] text-white rounded text-xs font-semibold hover:bg-[#1D6349] cursor-pointer"
-                      >
-                        Inspect snapshot
-                      </button>
-                      <button
-                        onClick={() => {
-                          onClose();
-                          onChangeAmount();
-                        }}
-                        className="px-3 py-1.5 bg-[#FFFFFF] border border-[#DDD9D0] text-[#1E211F] rounded text-xs font-semibold hover:bg-[#F1EFE9] cursor-pointer"
-                      >
-                        Change amount
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                    <p className="text-[#1E211F] leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+
+                    {/* Verified Grounded Source Links (Honest: Only when available) */}
+                    {msg.groundedSources && msg.groundedSources.length > 0 && (
+                      <div className="pt-2 border-t border-[#DDD9D0] space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
+                          Verified Statutory Sources:
+                        </span>
+                        {msg.groundedSources.map((s, idx) => (
+                          <a
+                            key={idx}
+                            href={s.uri}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-1.5 rounded bg-[#F1EFE9] border border-[#DDD9D0] text-[11px] text-[#247A5A] hover:underline"
+                          >
+                            <span className="truncate pr-2">{s.title}</span>
+                            <ExternalLink className="w-3 h-3 shrink-0 text-[#8A8D86]" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isLoading && (
+                  <div className="p-3 bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl text-xs text-[#8A8D86] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#247A5A] animate-pulse" />
+                    <span>Clarity Analyst is analyzing consequences...</span>
+                  </div>
+                )}
+
+                <div ref={chatBottomRef} />
+              </div>
 
               {/* Link to Standalone Glossary */}
               {onOpenGlossary && (

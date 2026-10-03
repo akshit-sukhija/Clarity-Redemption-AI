@@ -124,10 +124,10 @@ export const RULE_VERIFICATION_SOURCES: RuleVerificationSource[] = [
     category: 'Payout Timeline',
     sourceOrganization: 'SEBI (Securities and Exchange Board of India)',
     sourceDocument: 'SEBI Circular SEBI/HO/IMD/IMD-I DOF1/P/CIR/2022/161 (Settlement cycle reduction)',
-    sourceDateVersion: 'Demo assumption: T+2 working days',
+    sourceDateVersion: 'Indicative processing timeline',
     verificationStatus: 'ILLUSTRATIVE',
     applicabilityConditions: 'Subject to cut-off timing, business days, and KYC compliance.',
     summary:
-      'Demo assumption: T+2 working days. Indicative processing depends on AMC scheme terms and banking hours.',
+      'Indicative processing timeline; actual timing depends on scheme terms, applicable processing rules, cut-off timing, and business days.',
   },
 ];

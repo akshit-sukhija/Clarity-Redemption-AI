@@ -304,7 +304,7 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
                     {formatCurrency(result.estimatedProceeds)}
                   </div>
                   <span className="text-[11px] text-white/80 block mt-1">
-                    Demo assumption: indicative credit within T+2 working days
+                    Indicative processing timeline; actual timing depends on scheme terms, cut-off timing, and business days
                   </span>
                 </div>
 

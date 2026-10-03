@@ -177,7 +177,7 @@ export function getTemplateExplanation(
   if (q.includes('when') || q.includes('payout') || q.includes('timing') || q.includes('account')) {
     return {
       question: 'When may I receive the money?',
-      answer: `Demo assumption: indicative payout within 2 working days (T+2 standard). Actual processing depends on the AMC scheme terms and banking hours.`,
+      answer: `Indicative processing timeline; actual timing depends on scheme terms, applicable processing rules, cut-off timing, and business days.`,
       source: 'template',
       mode: 'explain',
     };
@@ -187,7 +187,7 @@ export function getTemplateExplanation(
   if (isResearchQuery(q)) {
     return {
       question,
-      answer: `Statutory Status: STT is statutory at 0.001% on equity mutual fund redemptions under Section 98, Finance (No. 2) Act, 2004. Exit loads are defined by the scheme offer document (1% < 365 days). Equity redemption settlement follows the SEBI T+2 business-day framework.`,
+      answer: `Statutory Status: STT is statutory at 0.001% on equity mutual fund redemptions under Section 98, Finance (No. 2) Act, 2004. Exit load of 1% is an illustrative demo scheme rule for this prototype. Redemption settlement timelines are governed under SEBI operational guidelines, subject to business days and cut-off times.`,
       source: 'template',
       mode: 'research',
       groundedSources: [
@@ -286,7 +286,8 @@ export function validateNumericClaims(text: string, result: CalculationResult): 
  * Strictly constrained so the LLM cannot invent rates, taxes, or numbers.
  * Validates output against deterministic engine numbers.
  */
-export async function explainWithGemini(
+export async function chatWithClarityAnalyst(
+  conversationHistory: { role: 'user' | 'model'; text: string }[],
   question: string,
   result: CalculationResult
 ): Promise<ExplanationResponse> {
@@ -318,24 +319,27 @@ export async function explainWithGemini(
   try {
     const ai = new GoogleGenAI({ apiKey });
 
+    const systemInstruction = `You are the Clarity Analyst, a neutral Indian mutual fund redemption consequence explanation layer.
+STRICT BOUNDARIES:
+- Never give financial advice, recommend redeeming, holding, buying, or selling.
+- Never invent numbers, tax figures (capital gains tax is not calculated in this prototype), or payout timelines.
+- Current Scenario Data:
+  * Gross Redemption: ₹${result.grossRedemptionValue}
+  * Units Redeemed: ${result.unitsRedeemed.toFixed(3)}
+  * Illustrative NAV: ₹${result.illustrativeNAV}
+  * Exit Load: ₹${result.exitLoadAmount.toFixed(2)} (${result.exitLoadAmount > 0 ? '1% demo rule on Lot B' : '0% (all Lot A)'})
+  * Statutory STT: ₹${result.STTAmount.toFixed(2)} (0.001%)
+  * Estimated Proceeds: ₹${result.estimatedProceeds.toFixed(2)}
+  * Remaining Units: ${result.remainingUnits.toFixed(3)} (Value: ₹${result.remainingValueAtIllustrativeNAV.toFixed(2)})
+  * Indicative processing timeline: actual timing depends on scheme terms and business days.
+Task: Provide a factual, concise response in 2-3 sentences based strictly on the above figures and verified rules.`;
+
     if (isResearch) {
-      // MODE 2: RESEARCH WITH SEARCH GROUNDING
-      const researchPrompt = `You are the research and compliance layer for CLARITY, an Indian mutual fund decision-intelligence tool.
-Research query: "${question}"
-Scheme context: Indian equity mutual fund (Northstar Equity Opportunities Fund).
-Current prototype parameters:
-- STT: 0.001% on redemption (Finance Act 2004 Sec 98)
-- Exit Load: 1.00% if redeemed <= 365 days; 0% after 365 days
-- Settlement: T+2 business days (SEBI Circular)
-
-Task: Use Google Search Grounding to verify the official regulatory rule under SEBI, AMFI, or Ministry of Finance.
-Provide a concise, 2-3 sentence factual statement with exact statutory provisions.
-Do NOT give investment advice. Strictly state verified regulatory facts.`;
-
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: researchPrompt,
+        model: 'gemini-3.5-flash',
+        contents: `Research query: "${question}". Verify official regulatory rules under SEBI, AMFI, or Ministry of Finance regarding Indian equity mutual fund redemptions.`,
         config: {
+          systemInstruction,
           tools: [{ googleSearch: {} }],
         },
       });
@@ -361,43 +365,36 @@ Do NOT give investment advice. Strictly state verified regulatory facts.`;
         return {
           question,
           answer: text,
-          source: 'grounded_search',
+          source: groundedSources.length > 0 ? 'grounded_search' : 'template',
           mode: 'research',
           groundedSources: groundedSources.length > 0 ? groundedSources : template.groundedSources,
           searchQueries: webSearchQueries,
         };
       }
     } else {
-      // MODE 1: EXPLAIN THIS REDEMPTION
-      const prompt = `You are the contextual explanation engine for CLARITY, a neutral Indian mutual fund redemption decision-understanding tool.
-STRICT BOUNDARIES:
-- Do NOT give financial advice, buy/sell/hold advice, or recommend redeeming/not redeeming.
-- Do NOT invent or alter any financial figures, rates, taxes, or dates.
-- Use ONLY the following verified transaction consequence data:
-  * Gross Redemption: ₹${result.grossRedemptionValue}
-  * Units Redeemed: ${result.unitsRedeemed.toFixed(3)}
-  * Illustrative NAV: ₹${result.illustrativeNAV}
-  * Exit Load: ₹${result.exitLoadAmount.toFixed(2)} (${result.exitLoadAmount > 0 ? '1% on Lot B' : '0% (all from Lot A)'})
-  * STT: ₹${result.STTAmount.toFixed(2)} (0.001%)
-  * Estimated Proceeds: ₹${result.estimatedProceeds.toFixed(2)}
-  * Remaining Units: ${result.remainingUnits.toFixed(3)}
-  * Remaining Value: ₹${result.remainingValueAtIllustrativeNAV.toFixed(2)}
-  * Payout: within 2 working days (indicative demo assumption)
-  * Capital gains tax is not calculated in this prototype.
-
-User Question: "${question}"
-Base accurate answer: "${template.answer}"
-
-Task: Provide a calm, concise, factual, neutral explanation in 2-3 sentences based strictly on the above figures. If the user asks for investment advice, refuse neutrally: "I can explain the calculation and the rules used. I don't make investment decisions."`;
+      // Build conversation contents including past turns
+      const contents: any[] = [];
+      for (const turn of conversationHistory.slice(-4)) {
+        contents.push({
+          role: turn.role,
+          parts: [{ text: turn.text }],
+        });
+      }
+      contents.push({
+        role: 'user',
+        parts: [{ text: `User Question: "${question}". Base accurate explanation: "${template.answer}"` }],
+      });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
+        model: 'gemini-3.5-flash',
+        contents,
+        config: {
+          systemInstruction,
+        },
       });
 
       const text = response.text?.trim();
       if (text && text.length > 10) {
-        // Section 37: Validate that LLM did not invent erroneous financial numbers or advice
         if (validateNumericClaims(text, result)) {
           return {
             question,
@@ -413,4 +410,11 @@ Task: Provide a calm, concise, factual, neutral explanation in 2-3 sentences bas
   }
 
   return template;
+}
+
+export async function explainWithGemini(
+  question: string,
+  result: CalculationResult
+): Promise<ExplanationResponse> {
+  return chatWithClarityAnalyst([], question, result);
 }

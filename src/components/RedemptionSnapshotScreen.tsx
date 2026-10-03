@@ -249,7 +249,7 @@ export const RedemptionSnapshotScreen: React.FC<RedemptionSnapshotScreenProps> =
               )}
 
               <span className="text-[11px] text-white/80 block mt-1.5">
-                Demo assumption: indicative credit in T+2 working days
+                Indicative processing timeline; actual timing depends on scheme terms, cut-off timing, and business days
               </span>
             </div>
           </div>

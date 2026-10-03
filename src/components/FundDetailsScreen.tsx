@@ -141,7 +141,7 @@ export const FundDetailsScreen: React.FC<FundDetailsScreenProps> = ({
             <li>FIFO allocation applied under this prototype scheme rule.</li>
             <li>Demo scheme rule: 1% exit load on units redeemed within 365 days; 0% thereafter.</li>
             <li>Statutory STT of 0.001% levied on gross redemption value under Finance Act Section 98.</li>
-            <li>Demo assumption: Indicative processing within T+2 working days.</li>
+            <li>Indicative processing timeline; actual timing depends on scheme terms, cut-off timing, and business days.</li>
             <li>Capital gains tax is not calculated in this prototype.</li>
           </ul>
         </div>
