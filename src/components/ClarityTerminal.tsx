@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { CalculationResult, ScenarioHistoryItem } from '../types';
 import { DEMO_FUND } from '../data/fundData';
-import { formatCurrency, formatUnits } from '../services/calculationEngine';
+import { calculateRedemption, formatCurrency, formatUnits } from '../services/calculationEngine';
 import { MarketContextStrip } from './MarketContextStrip';
 import { RelevantContextPanel } from './RelevantContextPanel';
 import { RuleTransparency } from './RuleTransparency';
@@ -111,8 +111,8 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 space-y-6">
-      {/* DECISION CONTEXT HEADER (Section 24) */}
-      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 1. DECISION CONTEXT (Section 2 & 6) */}
+      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-4 sm:p-5 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#247A5A] bg-[#247A5A]/10 px-2 py-0.5 rounded">
@@ -130,39 +130,9 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
             <span className="text-[#8A8D86]"><strong>What Clarity does not do:</strong> recommend whether to redeem</span>
           </div>
         </div>
-
-        {/* Global Terminal Utility Actions */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <button
-            onClick={() => onOpenGlossary('rules')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer shadow-xs"
-            title="Inspect scheme SID and statutory rules"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-[#247A5A]" />
-            <span>Rules register</span>
-          </button>
-
-          <button
-            onClick={onOpenComparison}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer shadow-xs"
-            title="Compare benchmark redemption amounts side-by-side"
-          >
-            <Scale className="w-3.5 h-3.5 text-[#666861]" />
-            <span>Compare</span>
-          </button>
-
-          <button
-            onClick={onOpenExportRecord}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors cursor-pointer shadow-xs"
-            title="Export or print redemption snapshot record"
-          >
-            <FileDown className="w-3.5 h-3.5 text-[#666861]" />
-            <span>Save snapshot</span>
-          </button>
-        </div>
       </div>
 
-      {/* COMPACT MARKET CONTEXT (Section 3 & 4) */}
+      {/* 2. COMPACT MARKET CONTEXT (Section 2 & 7) */}
       <MarketContextStrip />
 
       {/* PRIMARY 3-COLUMN WORKSPACE: HOLDING (Col 1) | SNAPSHOT HERO (Col 2) | RELEVANT CONTEXT (Col 3) */}
@@ -255,93 +225,22 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
         {/* ============================================================== */}
         <div className="lg:col-span-6 space-y-4">
           <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 sm:p-6 shadow-xs space-y-5">
-            {/* Amount Input & Dedicated Quick Actions Row (Section 5 & 6) */}
-            <div className="space-y-3 pb-4 border-b border-[#DDD9D0]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
-                    Redemption Snapshot
+            {/* Snapshot Amount Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#DDD9D0]">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86] block">
+                  Redemption Snapshot
+                </span>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span className="text-xs font-semibold text-[#666861]">Amount requested:</span>
+                  <span className="text-2xl sm:text-3xl font-bold font-mono text-[#1E211F]">
+                    {formatCurrency(result.grossRedemptionValue, 0)}
                   </span>
-                  <div className="flex items-baseline gap-2 mt-0.5">
-                    <span className="text-xs font-semibold text-[#666861]">Amount to redeem:</span>
-                    <span className="text-2xl sm:text-3xl font-bold font-mono text-[#1E211F]">
-                      {formatCurrency(result.grossRedemptionValue, 0)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* DEDICATED QUICK ACTIONS ROW (Section 5) */}
-                <div className="flex flex-col items-start sm:items-end gap-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A8D86]">
-                    Quick Actions
-                  </span>
-                  <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
-                    {QUICK_ACTIONS.map((action) => {
-                      const isSelected = Math.abs(result.grossRedemptionValue - action.amount) < 1;
-                      return (
-                        <button
-                          key={action.label}
-                          onClick={() => onLiveAmountChange(Math.min(action.amount, DEMO_FUND.holdingValue))}
-                          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#247A5A] text-white shadow-xs'
-                              : 'bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] border border-[#DDD9D0]'
-                          }`}
-                        >
-                          {action.label}
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
-
-              {/* Range Slider for Instant Recalculation */}
-              <div className="space-y-1.5">
-                <input
-                  type="range"
-                  min="1000"
-                  max={DEMO_FUND.holdingValue}
-                  step="1000"
-                  value={result.grossRedemptionValue}
-                  onChange={handleSliderChange}
-                  className="w-full cursor-pointer accent-[#247A5A]"
-                  aria-label="Adjust redemption amount"
-                />
-                <div className="flex justify-between text-[11px] text-[#8A8D86] font-mono">
-                  <span>Min: ₹1,000</span>
-                  <span className="text-[#A66A16] font-sans font-medium text-[10px]">
-                    Lot A 0% load boundary: {formatCurrency(lotABoundaryAmount, 0)}
-                  </span>
-                  <span>Max: {formatCurrency(DEMO_FUND.holdingValue, 0)}</span>
-                </div>
-              </div>
-
-              {/* VISUAL REDEMPTION-PERCENTAGE INDICATOR (Section 6) */}
-              <div className="p-3 bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold font-mono text-[#1E211F]">
-                      {formattedPercentage}%
-                    </span>
-                    <span className="text-[#666861] text-[11px]">of available holding</span>
-                  </div>
-                  <span className="text-[11px] text-[#8A8D86]">
-                    Available holding: <strong className="font-mono text-[#1E211F]">{formatCurrency(DEMO_FUND.holdingValue, 0)}</strong>
-                  </span>
-                </div>
-                <div className="w-full bg-[#DDD9D0] rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-[#247A5A] h-full rounded-full transition-all duration-150"
-                    style={{ width: `${redemptionPercentage}%` }}
-                    role="progressbar"
-                    aria-valuenow={redemptionPercentage}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label="Redemption percentage of total holding"
-                  />
-                </div>
-              </div>
+              <span className="text-[11px] font-semibold text-[#247A5A] bg-[#247A5A]/10 px-2.5 py-1 rounded-md border border-[#247A5A]/20">
+                Verified Scenario
+              </span>
             </div>
 
             {/* Estimated Proceeds Hero Badge */}
@@ -493,7 +392,7 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
                   className="py-2.5 px-3 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 >
                   <Sparkles className="w-4 h-4 text-[#247A5A]" />
-                  <span>Ask about this redemption</span>
+                  <span>Ask Clarity</span>
                 </button>
 
                 <button
@@ -523,6 +422,100 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
         {/* ============================================================== */}
         <div className="lg:col-span-3 space-y-4">
           <RelevantContextPanel />
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* 4. QUICK ACTIONS + REDEMPTION CONTROL & 5. REDEMPTION PROGRESS INDICATOR (Section 2, 3, 4) */}
+      {/* ============================================================== */}
+      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#DDD9D0]">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#247A5A] block">
+              Redemption Control
+            </span>
+            <h3 className="text-sm font-bold text-[#1E211F]">
+              Explore redemption amounts
+            </h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#666861]">Selected amount:</span>
+            <span className="text-base font-bold font-mono text-[#1E211F]">
+              {formatCurrency(result.grossRedemptionValue, 0)}
+            </span>
+          </div>
+        </div>
+
+        {/* 4. Quick Actions Row (Section 3) */}
+        <div className="space-y-1.5">
+          <div className="text-[11px] font-semibold text-[#8A8D86] uppercase tracking-wider">
+            Quick Actions
+          </div>
+          <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+            {QUICK_ACTIONS.map((action) => {
+              const isSelected = Math.abs(result.grossRedemptionValue - action.amount) < 1;
+              return (
+                <button
+                  key={action.label}
+                  onClick={() => onLiveAmountChange(Math.min(action.amount, DEMO_FUND.holdingValue))}
+                  className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#247A5A] text-white shadow-xs'
+                      : 'bg-[#F1EFE9] text-[#1E211F] hover:bg-[#E8E5DD] border border-[#DDD9D0]'
+                  }`}
+                >
+                  {action.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Amount Range Slider (Section 4) */}
+        <div className="space-y-1.5 pt-1">
+          <input
+            type="range"
+            min="1000"
+            max={DEMO_FUND.holdingValue}
+            step="1000"
+            value={result.grossRedemptionValue}
+            onChange={handleSliderChange}
+            className="w-full cursor-pointer accent-[#247A5A]"
+            aria-label="Adjust redemption amount"
+          />
+          <div className="flex justify-between text-[11px] text-[#8A8D86] font-mono">
+            <span>Min: ₹1,000</span>
+            <span className="text-[#A66A16] font-sans font-medium text-[10px]">
+              Lot A 0% load boundary: {formatCurrency(lotABoundaryAmount, 0)}
+            </span>
+            <span>Max: {formatCurrency(DEMO_FUND.holdingValue, 0)}</span>
+          </div>
+        </div>
+
+        {/* 5. Redemption Progress Indicator (Section 4) */}
+        <div className="p-3.5 bg-[#F1EFE9] border border-[#DDD9D0] rounded-lg space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base font-bold font-mono text-[#1E211F]">
+                {formattedPercentage}%
+              </span>
+              <span className="text-[#666861] text-xs">of available holding</span>
+            </div>
+            <span className="text-xs text-[#8A8D86]">
+              Available holding: <strong className="font-mono text-[#1E211F]">{formatCurrency(DEMO_FUND.holdingValue, 0)}</strong>
+            </span>
+          </div>
+          <div className="w-full bg-[#DDD9D0] rounded-full h-2.5 overflow-hidden">
+            <div
+              className="bg-[#247A5A] h-full rounded-full transition-all duration-150"
+              style={{ width: `${redemptionPercentage}%` }}
+              role="progressbar"
+              aria-valuenow={redemptionPercentage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Redemption percentage of total holding"
+            />
+          </div>
         </div>
       </div>
 
@@ -591,15 +584,12 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
                 { amt: 75000, label: '₹75,000', note: 'Higher Lot B share' },
                 { amt: DEMO_FUND.holdingValue, label: 'Full', note: '100% liquidated' },
               ].map((item) => {
-                const isCurrent = result.grossRedemptionValue === item.amt;
-                // Compute basic row values
-                const units = item.amt / result.illustrativeNAV;
-                const lotAUnits = Math.min(300, units);
-                const lotBUnits = Math.max(0, units - 300);
-                const exitLoad = lotBUnits * result.illustrativeNAV * 0.01;
-                const stt = Math.round(item.amt * 0.00001 * 100) / 100;
-                const deductions = exitLoad + stt;
-                const proceeds = item.amt - deductions;
+                const isCurrent = Math.abs(result.grossRedemptionValue - item.amt) < 1;
+                // Single financial source of truth: invoke calculateRedemption
+                const rowCalc = calculateRedemption(DEMO_FUND, item.amt);
+                const units = rowCalc.unitsRedeemed;
+                const deductions = rowCalc.totalDeductions;
+                const proceeds = rowCalc.estimatedProceeds;
 
                 return (
                   <tr
