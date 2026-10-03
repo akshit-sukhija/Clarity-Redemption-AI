@@ -1,6 +1,7 @@
 import { FundHolding, SchemeRules, RuleVerificationSource, GlossaryTerm } from '../types';
 
 export const DEMO_AS_OF_DATE = '2026-10-01';
+export const DEMO_SCENARIO_DATE = DEMO_AS_OF_DATE; // Fixed illustrative financial scenario date (Section 4)
 
 export const DEMO_FUND: FundHolding = {
   name: 'Northstar Equity Opportunities Fund',

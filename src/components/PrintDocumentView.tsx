@@ -164,6 +164,46 @@ export const PrintDocumentView: React.FC<PrintDocumentViewProps> = ({ result, fu
         </table>
       </div>
 
+      {/* Decision Support Record Verification (Section 26) */}
+      <div className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg p-4 mb-6 text-xs space-y-2">
+        <div className="font-bold text-xs uppercase tracking-wider text-[#0F172A] border-b border-[#E2E8F0] pb-1.5 flex items-center justify-between">
+          <span>Decision-Support Snapshot Record</span>
+          <span className="text-[10px] font-mono text-[#64748B]">INFORMATIONAL ONLY</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] pt-1">
+          <div>
+            <span className="text-[#64748B] block">Redemption Considered:</span>
+            <strong className="text-[#0F172A] font-mono">{formatCurrency(result.grossRedemptionValue)}</strong>
+          </div>
+          <div>
+            <span className="text-[#64748B] block">Estimated Proceeds:</span>
+            <strong className="text-[#0F172A] font-mono">{formatCurrency(result.estimatedProceeds)}</strong>
+          </div>
+          <div>
+            <span className="text-[#64748B] block">Context Reviewed:</span>
+            <span className="text-[#0F172A] font-medium">3 market signals</span>
+          </div>
+          <div>
+            <span className="text-[#64748B] block">Evidence Reviewed:</span>
+            <span className="text-[#0F172A] font-medium">3 statutory sources</span>
+          </div>
+        </div>
+        <div className="pt-2 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-[10px] text-[#475569]">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#247A5A]" />
+            <span>Calculation: <strong>Deterministic</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#247A5A]" />
+            <span>AI: <strong>Scenario / Grounded Explainer</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[#247A5A] font-bold">✓</span>
+            <span>No recommendation made (Self-directed)</span>
+          </div>
+        </div>
+      </div>
+
       {/* Rule & Source Metadata */}
       <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4 mb-6 text-[11px] text-[#475569] space-y-2">
         <div className="font-semibold text-xs text-[#0F172A] mb-1">Authoritative Rule Evidence & Statutory Sources:</div>
@@ -171,13 +211,13 @@ export const PrintDocumentView: React.FC<PrintDocumentViewProps> = ({ result, fu
           <strong>STT (0.001%): </strong>Section 98, Finance (No. 2) Act, 2004 (CBDT statutory rate on equity-oriented fund repurchase).
         </div>
         <div>
-          <strong>Exit Load: </strong>Scheme Information Document (SID) standard format. 1% within 365 days; 0% thereafter. Lot A held 412 days; Lot B held 214 days as of 2026-10-01.
+          <strong>Exit Load: </strong>Scheme Information Document (SID) illustrative rule. 1% within 365 days; 0% thereafter. Lot A held 412 days (0%); Lot B held 214 days (1%) as of 2026-10-01.
         </div>
         <div>
-          <strong>Settlement Timeline: </strong>Illustrative payout within 2 working days. Actual processing depends on scheme terms and banking processing days.
+          <strong>Settlement Timeline: </strong>Indicative processing timeline; actual timing depends on scheme terms, applicable processing rules, cut-off timing, and business days.
         </div>
         <div>
-          <strong>Tax Note: </strong>Capital gains tax is not included in this prototype estimate.
+          <strong>Tax Note: </strong>Capital gains tax is not calculated in this prototype estimate.
         </div>
       </div>
 

@@ -9,11 +9,33 @@ interface TestFixtureModalProps {
 
 export const TestFixtureModal: React.FC<TestFixtureModalProps> = ({ isOpen, onClose }) => {
   const [suiteResult, setSuiteResult] = useState(() => runAllTestFixtures());
+  const [isRunning, setIsRunning] = useState(false);
+  const [runCount, setRunCount] = useState(1);
+  const [lastRunAt, setLastRunAt] = useState<string>(() => {
+    const d = new Date();
+    return `${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} · ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} IST`;
+  });
+  const [durationMs, setDurationMs] = useState<number>(3);
 
   if (!isOpen) return null;
 
   const handleRerun = () => {
-    setSuiteResult(runAllTestFixtures());
+    setIsRunning(true);
+    const start = performance.now();
+    // Execute deterministic suite
+    setTimeout(() => {
+      const res = runAllTestFixtures();
+      const end = performance.now();
+      const elapsed = Math.max(1, Math.round(end - start));
+      setSuiteResult(res);
+      setDurationMs(elapsed);
+      setRunCount((prev) => prev + 1);
+      const d = new Date();
+      setLastRunAt(
+        `${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} · ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} IST`
+      );
+      setIsRunning(false);
+    }, 120);
   };
 
   return (
@@ -44,28 +66,34 @@ export const TestFixtureModal: React.FC<TestFixtureModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Status Banner */}
-        <div className="px-6 py-3.5 bg-[#F1EFE9] border-b border-[#DDD9D0] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs">
-            <span
-              className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-0.5 rounded text-xs ${
-                suiteResult.allPassed
-                  ? 'bg-[#247A5A]/10 text-[#247A5A] border border-[#247A5A]/20'
-                  : 'bg-[#B65347]/10 text-[#B65347] border border-[#B65347]/20'
-              }`}
-            >
-              <CheckCircle className="w-3.5 h-3.5 text-[#247A5A]" />
-              {suiteResult.passedTests} / {suiteResult.totalTests} Assertions Passed
-            </span>
-            <span className="text-[#DDD9D0] hidden sm:inline">•</span>
-            <span className="text-[#666861] hidden sm:inline">Mathematical Invariants Verified</span>
+        <div className="px-6 py-3.5 bg-[#F1EFE9] border-b border-[#DDD9D0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs">
+              <span
+                className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-0.5 rounded text-xs ${
+                  suiteResult.allPassed
+                    ? 'bg-[#247A5A]/10 text-[#247A5A] border border-[#247A5A]/20'
+                    : 'bg-[#B65347]/10 text-[#B65347] border border-[#B65347]/20'
+                }`}
+              >
+                <CheckCircle className="w-3.5 h-3.5 text-[#247A5A]" />
+                {suiteResult.passedTests} / {suiteResult.totalTests} Checks Passed
+              </span>
+              <span className="text-[#DDD9D0] hidden sm:inline">•</span>
+              <span className="text-[#666861] hidden sm:inline">Mathematical Invariants Verified</span>
+            </div>
+            <div className="text-[11px] text-[#8A8D86] font-mono">
+              Last run · {lastRunAt} · Run #{runCount} ({durationMs} ms)
+            </div>
           </div>
 
           <button
             onClick={handleRerun}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#E8E5DD] border border-[#DDD9D0] rounded-md transition-colors cursor-pointer"
+            disabled={isRunning}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E211F] bg-[#FFFFFF] hover:bg-[#E8E5DD] disabled:opacity-50 border border-[#DDD9D0] rounded-md transition-colors cursor-pointer shrink-0"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-[#666861]" />
-            <span>Re-run tests</span>
+            <RefreshCw className={`w-3.5 h-3.5 text-[#666861] ${isRunning ? 'animate-spin' : ''}`} />
+            <span>{isRunning ? 'Running tests…' : '↻ Re-run tests'}</span>
           </button>
         </div>
 

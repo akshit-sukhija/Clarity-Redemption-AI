@@ -62,7 +62,7 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
     {
       id: 'msg-welcome',
       sender: 'assistant',
-      text: `Hello. I am the Clarity Analyst. I can explain the consequences of your ${formatCurrency(result.grossRedemptionValue)} redemption scenario, how units were allocated under FIFO, applicable demo exit loads, and statutory STT. What would you like to understand?`,
+      text: `Hello. I am Ask Clarity. I can explain the consequences of your ${formatCurrency(result.grossRedemptionValue)} redemption scenario, how units were allocated under FIFO, applicable demo exit loads, statutory STT, or surrounding market context. What would you like to understand?`,
       timestamp: 'Initial context',
       mode: 'explain',
       source: 'template',
@@ -168,14 +168,14 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
         {/* Drawer Header */}
         <div className="px-6 py-5 border-b border-[#DDD9D0] flex items-center justify-between bg-[#FFFFFF]">
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A8D86] block">
-              Redemption context
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#247A5A] block">
+              Decision Explanation
             </span>
             <h2 className="text-lg font-bold text-[#1E211F]">
-              Ask about this redemption
+              Ask Clarity
             </h2>
             <p className="text-xs text-[#666861] mt-0.5">
-              Grounded strictly in your {formatCurrency(result.grossRedemptionValue)} scenario.
+              Explain this redemption, its rules, or the context around it.
             </p>
           </div>
           <button
@@ -316,7 +316,7 @@ export const ExplanationDrawer: React.FC<ExplanationDrawerProps> = ({
                   >
                     <div className="flex items-center justify-between pb-1 border-b border-[#DDD9D0]/60">
                       <span className="font-bold text-[#1E211F]">
-                        {msg.sender === 'user' ? 'You' : 'Clarity Analyst'}
+                        {msg.sender === 'user' ? 'You' : 'Ask Clarity'}
                       </span>
                       <div className="flex items-center gap-1.5">
                         {msg.sender === 'assistant' && (

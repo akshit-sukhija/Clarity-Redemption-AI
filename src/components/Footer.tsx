@@ -37,7 +37,7 @@ export const Footer: React.FC<FooterProps> = ({
             <span>Financial glossary</span>
           </button>
           <span className="text-[#DDD9D0]">•</span>
-          <span className="font-mono text-[#8A8D86]">Scenario date: 2026-10-01</span>
+          <span className="font-mono text-[#8A8D86]">Illustrative scenario: 01 Oct 2026</span>
 
           {onOpenDiagnostics && (
             <>

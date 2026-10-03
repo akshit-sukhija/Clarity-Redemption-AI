@@ -93,22 +93,24 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 space-y-6">
-      {/* TERMINAL HEADER BAR */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#DDD9D0]">
-        <div>
+      {/* DECISION CONTEXT HEADER (Section 24) */}
+      <div className="bg-[#FFFFFF] border border-[#DDD9D0] rounded-xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#247A5A]">
-              Decision-Context Terminal
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#247A5A] bg-[#247A5A]/10 px-2 py-0.5 rounded">
+              Decision context
             </span>
             <span className="text-xs text-[#DDD9D0]">•</span>
-            <span className="text-xs text-[#8A8D86]">Scenario date: {DEMO_FUND.demoAsOfDate}</span>
+            <span className="text-xs text-[#8A8D86]">Illustrative scenario · 01 Oct 2026</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1E211F] font-sans mt-0.5">
-            Redemption context, without the guesswork.
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1E211F] font-sans">
+            Redeem {formatCurrency(result.grossRedemptionValue, 0)} from {DEMO_FUND.name}
           </h1>
-          <p className="text-xs sm:text-sm text-[#666861] mt-1">
-            Review estimated net proceeds, statutory deductions, and remaining holding before you confirm.
-          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#666861] pt-0.5">
+            <span><strong>What Clarity shows:</strong> consequences + relevant context + evidence</span>
+            <span className="text-[#DDD9D0] hidden sm:inline">•</span>
+            <span className="text-[#8A8D86]"><strong>What Clarity does not do:</strong> recommend whether to redeem</span>
+          </div>
         </div>
 
         {/* Global Terminal Utility Actions */}
@@ -141,9 +143,6 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
           </button>
         </div>
       </div>
-
-      {/* ZONE A: LIVE / HONEST MARKET CONTEXT STRIP */}
-      <MarketContextStrip />
 
       {/* PRIMARY 3-COLUMN WORKSPACE: HOLDING (Col 1) | SNAPSHOT HERO (Col 2) | RELEVANT CONTEXT (Col 3) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -627,6 +626,11 @@ export const ClarityTerminal: React.FC<ClarityTerminalProps> = ({
             </button>
           </div>
         </div>
+      </div>
+
+      {/* LEVEL 5: COMPACT SUPPORTING MARKET CONTEXT (Section 8 & 25) */}
+      <div className="pt-2">
+        <MarketContextStrip />
       </div>
     </div>
   );

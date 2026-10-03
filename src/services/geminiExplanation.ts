@@ -100,11 +100,11 @@ export function getTemplateExplanation(
 ): ExplanationResponse {
   const q = question.toLowerCase().trim();
 
-  // Handle advice questions strictly per Section 18
+  // Handle advice questions strictly per Section 17
   if (isAdviceQuery(q)) {
     return {
       question,
-      answer: "I can explain the calculation and the rules used. I don't make investment decisions.",
+      answer: "I can explain the calculation, rules, and relevant context. I don't make the investment decision.",
       source: 'template',
       mode: 'explain',
       isAdviceQuestion: true,
@@ -295,7 +295,7 @@ export async function chatWithClarityAnalyst(
   if (isAdviceQuery(question)) {
     return {
       question,
-      answer: "I can explain the calculation and the rules used. I don't make investment decisions.",
+      answer: "I can explain the calculation, rules, and relevant context. I don't make the investment decision.",
       source: 'template',
       mode: 'explain',
       isAdviceQuestion: true,
@@ -319,19 +319,26 @@ export async function chatWithClarityAnalyst(
   try {
     const ai = new GoogleGenAI({ apiKey });
 
-    const systemInstruction = `You are the Clarity Analyst, a neutral Indian mutual fund redemption consequence explanation layer.
+    const systemInstruction = `You are "Ask Clarity", a neutral mutual fund redemption consequence and context explainer.
+USER PERSONA: Riya, a self-directed retail investor considering a redemption.
 STRICT BOUNDARIES:
-- Never give financial advice, recommend redeeming, holding, buying, or selling.
-- Never invent numbers, tax figures (capital gains tax is not calculated in this prototype), or payout timelines.
-- Current Scenario Data:
-  * Gross Redemption: ₹${result.grossRedemptionValue}
-  * Units Redeemed: ${result.unitsRedeemed.toFixed(3)}
+- Never give financial advice, recommendations, buy/sell/hold/wait opinions, or risk scores.
+- If asked for advice, refuse neutrally: "I can explain the calculation, rules, and relevant context. I don't make the investment decision."
+- Never invent numbers, tax figures (capital gains tax is not calculated in this prototype), or payout guarantees.
+- BOUNDED CLARITY CONTEXT:
+  * Decision: Mutual fund redemption
+  * Fund: Northstar Equity Opportunities Fund (Equity-oriented)
+  * Demo Scenario Date: 01 Oct 2026
   * Illustrative NAV: ₹${result.illustrativeNAV}
-  * Exit Load: ₹${result.exitLoadAmount.toFixed(2)} (${result.exitLoadAmount > 0 ? '1% demo rule on Lot B' : '0% (all Lot A)'})
-  * Statutory STT: ₹${result.STTAmount.toFixed(2)} (0.001%)
-  * Estimated Proceeds: ₹${result.estimatedProceeds.toFixed(2)}
-  * Remaining Units: ${result.remainingUnits.toFixed(3)} (Value: ₹${result.remainingValueAtIllustrativeNAV.toFixed(2)})
-  * Indicative processing timeline: actual timing depends on scheme terms and business days.
+  * Gross Redemption: ₹${result.grossRedemptionValue}
+  * Units Liquidated: ${result.unitsRedeemed.toFixed(3)}
+  * FIFO Lot Allocation: Lot A (412 days, 0% load), Lot B (214 days, 1% demo load)
+  * Exit Load Amount: ₹${result.exitLoadAmount.toFixed(2)}
+  * Statutory STT: ₹${result.STTAmount.toFixed(2)} (0.001% under Finance Act Sec 98)
+  * Total Deductions: ₹${result.totalDeductions.toFixed(2)}
+  * Estimated Net Proceeds: ₹${result.estimatedProceeds.toFixed(2)}
+  * Remaining Holding: ${result.remainingUnits.toFixed(3)} units (₹${result.remainingValueAtIllustrativeNAV.toFixed(2)})
+  * Timeline: Indicative processing timeline; actual timing depends on scheme terms, cut-off timing, and business days.
 Task: Provide a factual, concise response in 2-3 sentences based strictly on the above figures and verified rules.`;
 
     if (isResearch) {
